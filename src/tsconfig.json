@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "outDir": "../build/src",
+    },
+    "extends": "../tsconfig.json",
+    "include": [
+        "**/*.ts",
+        "genfiles/*.json",
+    ],
+    "exclude": [
+      "client/**/*.ts"
+    ]
+}
