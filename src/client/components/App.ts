@@ -67,11 +67,7 @@ const data: MainAppData = {
     'milestones': true,
     'awards_list': true,
     'tags_concise': false,
-    'pinned_player_0': false,
-    'pinned_player_1': false,
-    'pinned_player_2': false,
-    'pinned_player_3': false,
-    'pinned_player_4': false,
+  // pinned_player_N keys are intentionally omitted so player panels default to visible
     'turmoil_parties': false,
   } as {[x: string]: boolean},
   game: undefined as SimpleGameModel | undefined,
