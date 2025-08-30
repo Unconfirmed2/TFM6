@@ -1,8 +1,6 @@
 <template>
   <div id="player-home" :class="(game.turmoil ? 'with-turmoil': '')">
-  <div class="top-players-overview player_home_block">
-    <players-overview class="player_home_block--players nofloat" :playerView="playerView" :isTopBar="true" v-trim-whitespace id="shortkey-playersoverview"/>
-  </div>
+    <top-bar :playerView="playerView" />
 
     <div v-if="game.phase === 'end'">
       <div class="player_home_block">
@@ -99,7 +97,40 @@
                                 .concat(playerView.cardsInHand)"/>
       </div>
 
-  <!-- Played Cards section removed: per-player OtherPlayer panels now display played cards under each player's PlayerInfo to avoid duplication -->
+      <div class="player_home_block player_home_block--cards">
+        <div class="hiding-card-button-row">
+          <dynamic-title title="Played Cards" :color="thisPlayer.color" />
+          <div class="played-cards-filters">
+            <div :class="getHideButtonClass('ACTIVE')" v-on:click.prevent="toggle('ACTIVE')">
+              <div class="played-cards-count">{{getCardsByType(thisPlayer.tableau, [CardType.ACTIVE]).length.toString()}}</div>
+              <div class="played-cards-selection" v-i18n>{{ getToggleLabel('ACTIVE')}}</div>
+            </div>
+            <div :class="getHideButtonClass('AUTOMATED')" v-on:click.prevent="toggle('AUTOMATED')">
+              <div class="played-cards-count">{{getCardsByType(thisPlayer.tableau, [CardType.AUTOMATED, CardType.PRELUDE]).length.toString()}}</div>
+              <div class="played-cards-selection" v-i18n>{{ getToggleLabel('AUTOMATED')}}</div>
+            </div>
+            <div :class="getHideButtonClass('EVENT')" v-on:click.prevent="toggle('EVENT')">
+              <div class="played-cards-count">{{getCardsByType(thisPlayer.tableau, [CardType.EVENT]).length.toString()}}</div>
+              <div class="played-cards-selection" v-i18n>{{ getToggleLabel('EVENT')}}</div>
+            </div>
+          </div>
+          <div class="text-overview" v-i18n>[ toggle cards filters ]</div>
+        </div>
+        <div v-for="card in getCardsByType(thisPlayer.tableau, [CardType.CORPORATION])" :key="card.name" class="cardbox">
+            <Card :card="card" :actionUsed="isCardActivated(card, thisPlayer)" :cubeColor="thisPlayer.color"/>
+        </div>
+        <div v-for="card in getCardsByType(thisPlayer.tableau, [CardType.CEO])" :key="card.name" class="cardbox">
+            <Card :card="card" :actionUsed="isCardActivated(card, thisPlayer)" :cubeColor="thisPlayer.color"/>
+        </div>
+        <div v-show="isVisible('ACTIVE')" v-for="card in sortActiveCards(getCardsByType(thisPlayer.tableau, [CardType.ACTIVE, CardType.PRELUDE]).filter(isActive))" :key="card.name" class="cardbox">
+            <Card :card="card" :actionUsed="isCardActivated(card, thisPlayer)" :cubeColor="thisPlayer.color"/>
+        </div>
+
+        <stacked-cards v-show="isVisible('AUTOMATED')" :cards="getCardsByType(thisPlayer.tableau, [CardType.AUTOMATED, CardType.PRELUDE]).filter(isNotActive)" ></stacked-cards>
+
+        <stacked-cards v-show="isVisible('EVENT')" :cards="getCardsByType(thisPlayer.tableau, [CardType.EVENT])" ></stacked-cards>
+
+      </div>
 
       <div v-if="thisPlayer.selfReplicatingRobotsCards.length > 0" class="player_home_block">
         <dynamic-title title="Self-replicating Robots cards" :color="thisPlayer.color"/>
@@ -248,6 +279,7 @@ import Turmoil from '@/client/components/turmoil/Turmoil.vue';
 import PlanetaryTracks from '@/client/components/pathfinders/PlanetaryTracks.vue';
 import DynamicTitle from '@/client/components/common/DynamicTitle.vue';
 import SortableCards from '@/client/components/SortableCards.vue';
+import TopBar from '@/client/components/TopBar.vue';
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import StackedCards from '@/client/components/StackedCards.vue';
 import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
@@ -348,7 +380,8 @@ export default Vue.extend({
     'colony': Colony,
     'log-panel': LogPanel,
     'turmoil': Turmoil,
-  'sortable-cards': SortableCards,
+    'sortable-cards': SortableCards,
+    'top-bar': TopBar,
     MoonBoard,
     PlanetaryTracks,
     'stacked-cards': StackedCards,
@@ -485,40 +518,3 @@ export default Vue.extend({
 });
 
 </script>
-
-<style scoped>
-/* Styles scoped to the top players overview instance to present it as two rows */
-.top-players-overview ::v-deep .player-info {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Ensure tags occupy the full second row */
-.top-players-overview ::v-deep .player-info > player-tags,
-.top-players-overview ::v-deep .player-info > .tag-display,
-.top-players-overview ::v-deep .player-info > .player-tags {
-  flex-basis: 100%;
-  width: 100%;
-  order: 1;
-}
-
-.top-players-overview ::v-deep .player-info > .player-status-and-res {
-  order: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* Hide the show-cards button in the compact topbar */
-.top-players-overview ::v-deep .player-info .played-cards-button {
-  display: none !important;
-}
-
-/* Slightly compact tags appearance */
-.top-players-overview ::v-deep player-tags,
-.top-players-overview ::v-deep .player-info .tag-display {
-  margin-top: 4px;
-  font-size: 0.95em;
-}
-</style>

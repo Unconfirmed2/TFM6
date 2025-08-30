@@ -1,17 +1,18 @@
 <template>
         <div class="players-overview" v-if="hasPlayers()">
             <overview-settings />
+            <div class="other_player" v-if="thisPlayer === undefined || players.length > 1">
+                <div v-for="(otherPlayer, index) in getPlayersInOrder()" :key="otherPlayer.color">
+                    <other-player v-if="thisPlayer === undefined || otherPlayer.color !== thisPlayer.color" :player="otherPlayer" :playerIndex="index"/>
+                </div>
+            </div>
             <player-info v-for="(p, index) in getPlayersInOrder()"
               :player="p"
               :key="p.color"
               :playerView="playerView"
               :firstForGen="getIsFirstForGen(p)"
               :actionLabel="getActionLabel(p)"
-              :playerIndex="index"
-              :isTopBar="isTopBar"/>
-            <div v-for="(p, index) in getPlayersInOrder()" :key="p.color + '-other'" v-if="!isTopBar">
-                <other-player :player="p" :playerIndex="index" />
-            </div>
+              :playerIndex="index"/>
             <div v-if="playerView.players.length > 1 && thisPlayer !== undefined" class="player-divider" />
             <player-info
               v-if="thisPlayer !== undefined"
@@ -20,9 +21,7 @@
               :playerView="playerView"
               :firstForGen="getIsFirstForGen(thisPlayer)"
               :actionLabel="getActionLabel(thisPlayer)"
-              :playerIndex="-1"
-              :isTopBar="isTopBar"/>
-            <other-player v-if="thisPlayer !== undefined && !isTopBar" :player="thisPlayer" :playerIndex="-1" />
+              :playerIndex="-1"/>
         </div>
 </template>
 
@@ -55,10 +54,6 @@ export default Vue.extend({
   props: {
     playerView: {
       type: Object as () => ViewModel,
-    },
-    isTopBar: {
-      type: Boolean,
-      default: false,
     },
   },
   computed: {
