@@ -56,18 +56,6 @@
         </div>
       </div>
 
-      <players-overview class="player_home_block player_home_block--players nofloat" :playerView="playerView" v-trim-whitespace id="shortkey-playersoverview"/>
-
-      <div class="player_home_block nofloat">
-        <log-panel
-          :id="playerView.id"
-          :players="playerView.players"
-          :generation="game.generation"
-          :lastSoloGeneration="game.lastSoloGeneration"
-          :color="thisPlayer.color"
-          :step="game.step"></log-panel>
-      </div>
-
       <div class="player_home_block player_home_block--actions nofloat">
         <a name="actions" class="player_home_anchor"></a>
         <dynamic-title title="Actions" :color="thisPlayer.color"/>
@@ -97,40 +85,19 @@
                                 .concat(playerView.cardsInHand)"/>
       </div>
 
-      <div class="player_home_block player_home_block--cards">
-        <div class="hiding-card-button-row">
-          <dynamic-title title="Played Cards" :color="thisPlayer.color" />
-          <div class="played-cards-filters">
-            <div :class="getHideButtonClass('ACTIVE')" v-on:click.prevent="toggle('ACTIVE')">
-              <div class="played-cards-count">{{getCardsByType(thisPlayer.tableau, [CardType.ACTIVE]).length.toString()}}</div>
-              <div class="played-cards-selection" v-i18n>{{ getToggleLabel('ACTIVE')}}</div>
-            </div>
-            <div :class="getHideButtonClass('AUTOMATED')" v-on:click.prevent="toggle('AUTOMATED')">
-              <div class="played-cards-count">{{getCardsByType(thisPlayer.tableau, [CardType.AUTOMATED, CardType.PRELUDE]).length.toString()}}</div>
-              <div class="played-cards-selection" v-i18n>{{ getToggleLabel('AUTOMATED')}}</div>
-            </div>
-            <div :class="getHideButtonClass('EVENT')" v-on:click.prevent="toggle('EVENT')">
-              <div class="played-cards-count">{{getCardsByType(thisPlayer.tableau, [CardType.EVENT]).length.toString()}}</div>
-              <div class="played-cards-selection" v-i18n>{{ getToggleLabel('EVENT')}}</div>
-            </div>
-          </div>
-          <div class="text-overview" v-i18n>[ toggle cards filters ]</div>
-        </div>
-        <div v-for="card in getCardsByType(thisPlayer.tableau, [CardType.CORPORATION])" :key="card.name" class="cardbox">
-            <Card :card="card" :actionUsed="isCardActivated(card, thisPlayer)" :cubeColor="thisPlayer.color"/>
-        </div>
-        <div v-for="card in getCardsByType(thisPlayer.tableau, [CardType.CEO])" :key="card.name" class="cardbox">
-            <Card :card="card" :actionUsed="isCardActivated(card, thisPlayer)" :cubeColor="thisPlayer.color"/>
-        </div>
-        <div v-show="isVisible('ACTIVE')" v-for="card in sortActiveCards(getCardsByType(thisPlayer.tableau, [CardType.ACTIVE, CardType.PRELUDE]).filter(isActive))" :key="card.name" class="cardbox">
-            <Card :card="card" :actionUsed="isCardActivated(card, thisPlayer)" :cubeColor="thisPlayer.color"/>
-        </div>
+      <players-overview class="player_home_block player_home_block--players nofloat" :playerView="playerView" v-trim-whitespace id="shortkey-playersoverview"/>
 
-        <stacked-cards v-show="isVisible('AUTOMATED')" :cards="getCardsByType(thisPlayer.tableau, [CardType.AUTOMATED, CardType.PRELUDE]).filter(isNotActive)" ></stacked-cards>
-
-        <stacked-cards v-show="isVisible('EVENT')" :cards="getCardsByType(thisPlayer.tableau, [CardType.EVENT])" ></stacked-cards>
-
+      <div class="player_home_block nofloat">
+        <log-panel
+          :id="playerView.id"
+          :players="playerView.players"
+          :generation="game.generation"
+          :lastSoloGeneration="game.lastSoloGeneration"
+          :color="thisPlayer.color"
+          :step="game.step"></log-panel>
       </div>
+
+      
 
       <div v-if="thisPlayer.selfReplicatingRobotsCards.length > 0" class="player_home_block">
         <dynamic-title title="Self-replicating Robots cards" :color="thisPlayer.color"/>
@@ -290,12 +257,8 @@ import {KeyboardNavigation} from '@/client/components/KeyboardNavigation';
 import {Phase} from '@/common/Phase';
 import {GameModel} from '@/common/models/GameModel';
 import {PlayerViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
-import {CardType} from '@/common/cards/CardType';
 import {nextTileView, TileView} from './board/TileView';
-import {getCardsByType, isCardActivated} from '@/client/utils/CardUtils';
-import {sortActiveCards} from '@/client/utils/ActiveCardsSortingOrder';
-import {CardModel} from '@/common/models/CardModel';
-import {getCardOrThrow} from '../cards/ClientCardManifest';
+
 
 export interface PlayerHomeModel {
   showHand: boolean;
@@ -350,22 +313,11 @@ export default Vue.extend({
     game(): GameModel {
       return this.playerView.game;
     },
-    CardType(): typeof CardType {
-      return CardType;
-    },
     cardsInHandCount(): number {
       const playerView = this.playerView;
       return playerView.cardsInHand.length + playerView.preludeCardsInHand.length + playerView.ceoCardsInHand.length;
     },
-    getCardsByType(): typeof getCardsByType {
-      return getCardsByType;
-    },
-    isCardActivated(): typeof isCardActivated {
-      return isCardActivated;
-    },
-    sortActiveCards(): typeof sortActiveCards {
-      return sortActiveCards;
-    },
+    
   },
 
   components: {
@@ -496,13 +448,7 @@ export default Vue.extend({
         return '';
       }
     },
-    isActive(cardModel: CardModel): boolean {
-      const card = getCardOrThrow(cardModel.name);
-      return card.type === CardType.ACTIVE || card.hasAction;
-    },
-    isNotActive(cardModel: CardModel): boolean {
-      return !getCardOrThrow(cardModel.name).hasAction;
-    },
+    
   },
   destroyed() {
     window.removeEventListener('keydown', this.navigatePage);
