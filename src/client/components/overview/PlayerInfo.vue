@@ -49,7 +49,6 @@ import PlayerAlliedParty from '@/client/components/overview/PlayerAlliedParty.vu
 import PlayerStatus from '@/client/components/overview/PlayerStatus.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {vueRoot} from '@/client/components/vueRoot';
-import {range} from '@/common/utils/utils';
 import AppButton from '@/client/components/common/AppButton.vue';
 import {CardType} from '@/common/cards/CardType';
 import {getCard} from '@/client/cards/ClientCardManifest';
@@ -115,37 +114,19 @@ export default Vue.extend({
       return vueRoot(this).setVisibilityState('pinned_player_' + playerIndex, false);
     },
     pinPlayer() {
-      let hiddenPlayersIndexes = [];
+      // Toggle only this player's pinned state. Do not affect other players.
       const playerPinned = this.isPinned(this.playerIndex);
-
-      // if player is already pinned, add to hidden players (toggle)
-      hiddenPlayersIndexes = range(this.playerView.players.length - 1);
-      if (!playerPinned) {
+      if (playerPinned) {
+        this.unpin(this.playerIndex);
+      } else {
         this.pin(this.playerIndex);
-        hiddenPlayersIndexes = hiddenPlayersIndexes.filter(
-          (index) => index !== this.playerIndex,
-        );
-      }
-      for (let i = 0; i < hiddenPlayersIndexes.length; i++) {
-        if (hiddenPlayersIndexes.includes(i)) {
-          this.unpin(i);
-        }
       }
     },
     buttonLabel(): string {
       return this.isPinned(this.playerIndex) ? 'hide' : 'show';
     },
     togglePlayerDetails() {
-      // for the player viewing this page => scroll to cards UI
-      if (this.player.color === this.playerView.thisPlayer?.color) {
-        const el = document.getElementsByClassName(
-          'sidebar_icon--cards',
-        )[0] as HTMLElement;
-        el.click();
-
-        return;
-      }
-      // any other player show cards container and hide all other
+      // show cards container and hide others (same behavior for all players)
       this.pinPlayer();
     },
     getClasses(): string {

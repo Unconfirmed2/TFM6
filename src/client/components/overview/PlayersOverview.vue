@@ -1,26 +1,15 @@
 <template>
         <div class="players-overview" v-if="hasPlayers()">
             <overview-settings />
-            <player-info v-for="(p, index) in getPlayersInOrder()"
-              :player="p"
-              :key="p.color"
-              :playerView="playerView"
-              :firstForGen="getIsFirstForGen(p)"
-              :actionLabel="getActionLabel(p)"
-              :playerIndex="index"/>
-            <div v-for="(p, index) in getPlayersInOrder()" :key="p.color + '-other'">
-                <other-player :player="p" :playerIndex="index" />
+            <div v-for="(p, index) in getPlayersInOrder()" :key="p.color">
+              <player-info
+                :player="p"
+                :playerView="playerView"
+                :firstForGen="getIsFirstForGen(p)"
+                :actionLabel="getActionLabel(p)"
+                :playerIndex="index"/>
+              <other-player :player="p" :playerIndex="index" />
             </div>
-            <div v-if="playerView.players.length > 1 && thisPlayer !== undefined" class="player-divider" />
-            <player-info
-              v-if="thisPlayer !== undefined"
-              :player="thisPlayer"
-              :key="thisPlayer.color"
-              :playerView="playerView"
-              :firstForGen="getIsFirstForGen(thisPlayer)"
-              :actionLabel="getActionLabel(thisPlayer)"
-              :playerIndex="-1"/>
-            <other-player v-if="thisPlayer !== undefined" :player="thisPlayer" :playerIndex="-1" />
         </div>
 </template>
 
@@ -84,20 +73,14 @@ export default Vue.extend({
         return players;
       }
 
-      let result = [];
-      let currentPlayerOffset = 0;
-      const currentPlayerIndex = playerIndex(
-        this.thisPlayer.color,
-        this.players,
-      );
+      let result = [] as Array<PublicPlayerModel>;
+      const currentPlayerIndex = playerIndex(this.thisPlayer.color, this.players);
 
-      // shift the array by putting the player on focus at the tail
-      currentPlayerOffset = currentPlayerIndex + 1;
-      result = players
-        .slice(currentPlayerOffset)
-        .concat(players.slice(0, currentPlayerOffset));
-      // return all but the focused user
-      return result.slice(0, -1);
+      // rotate the array so the player after the focused user appears first
+      const currentPlayerOffset = currentPlayerIndex + 1;
+      result = players.slice(currentPlayerOffset).concat(players.slice(0, currentPlayerOffset));
+      // return full rotated list (include the focused user as well)
+      return result;
     },
     getActionLabel(player: PublicPlayerModel): ActionLabel {
       if (this.playerView.game.phase === Phase.DRAFTING) {
