@@ -2,34 +2,60 @@
   <div v-show="isVisible()">
     <div :class="'player_translucent_bg_color_' + player.color" class="other_player_header">
       <div class="player_name">{{ player.name }} <span v-i18n>played cards</span></div>
-      <AppButton size="big" type="close" @click="hideMe" :disableOnServerBusy="false" align="right" />
+      <div class="header-filter">
+        <select v-model="activeFilter">
+          <option v-for="opt in filterOptions" :key="opt.key" :value="opt.key">{{ opt.title }}</option>
+        </select>
+      </div>
     </div>
   <div class="other_player_cont menu">
-    <div class="other-player-controls">
-      <label v-i18n for="card-filter">Filter:</label>
-      <select id="card-filter" v-model="activeFilter">
-        <option value="all">All</option>
-        <option value="corporation">Corporation</option>
-        <option value="prelude">Prelude</option>
-        <option value="ceo">CEO</option>
-        <option value="active_with_actions">Active (with actions)</option>
-        <option value="active_without_actions">Active (without actions)</option>
-        <option value="automated">Automated</option>
-        <option value="event">Events</option>
-        <option value="self_replicating">Self-replicating Robots</option>
-      </select>
+    <!-- full-width selected group (single-column) -->
+    <div v-if="activeFilter && activeFilter !== 'all' && getGroupCards(activeFilter).length > 0" class="full-width-row">
+      <card-group
+        :key="activeFilter"
+        :group-key="activeFilter"
+        :title="groupTitle(activeFilter)"
+        :cards="getGroupCards(activeFilter)"
+        :mode="groupDisplayModes[activeFilter]"
+        :small="false"
+        :visible="groupDisplayModes[activeFilter] !== 'hidden'"
+        :player="player"
+        :full-width="true"
+        @change-mode="setMode(activeFilter, $event)"
+      ></card-group>
     </div>
     <div v-if="hasAnyCards" class="player_home_block other-player-columns">
       <div class="other-player-left">
+  <div v-if="hiddenGroups.length > 0" class="hidden-groups">
+          <card-group
+            v-for="key in hiddenGroups"
+            :key="key"
+            :group-key="key"
+            :title="groupTitle(key)"
+            :cards="getGroupCards(key)"
+            :mode="groupDisplayModes[key]"
+            :small="true"
+            :visible="true"
+            :player="player"
+            :header-only="true"
+            :full-width="activeFilter === key"
+            @change-mode="setMode(key, $event)
+          "></card-group>
+          <div v-if="hiddenGroups.length === groupOrder.length" class="unhide-all">
+            <AppButton size="small" @click="unhideAll">Unhide all</AppButton>
+          </div>
+        </div>
         <card-group
           v-for="key in ['corporation','prelude','ceo']"
           :key="key"
+          :group-key="key"
           :title="groupTitle(key)"
           :cards="getGroupCards(key)"
           :mode="groupDisplayModes[key]"
           :small="true"
-          :visible="getGroupCards(key).length > 0 && groupDisplayModes[key] !== 'hidden' && activeFilterMatches(key)"
+          :visible="getGroupCards(key).length > 0 && groupDisplayModes[key] !== 'hidden' && activeFilterMatches(key) && key !== activeFilter"
           :player="player"
+          :full-width="activeFilter === key"
           @change-mode="setMode(key, $event)
         "></card-group>
       </div>
@@ -37,12 +63,14 @@
         <card-group
           v-for="key in ['active_with_actions','active_without_actions','automated','event','self_replicating']"
           :key="key"
+          :group-key="key"
           :title="groupTitle(key)"
           :cards="getGroupCards(key)"
           :mode="groupDisplayModes[key]"
           :small="false"
-          :visible="getGroupCards(key).length > 0 && groupDisplayModes[key] !== 'hidden' && activeFilterMatches(key)"
+          :visible="getGroupCards(key).length > 0 && groupDisplayModes[key] !== 'hidden' && activeFilterMatches(key) && key !== activeFilter"
           :player="player"
+          :full-width="activeFilter === key"
           @change-mode="setMode(key, $event)
         "></card-group>
       </div>
@@ -84,7 +112,7 @@ export default Vue.extend({
     },
   },
   components: {
-    AppButton,
+  AppButton,
     'stacked-cards': StackedCards,
     Card,
   'card-group': CardGroup,
@@ -129,6 +157,22 @@ export default Vue.extend({
     },
     setMode(groupKey: string, mode: string) {
       this.groupDisplayModes[groupKey] = mode;
+    },
+    defaultModes() {
+      return {
+        corporation: 'grid',
+        prelude: 'grid',
+        ceo: 'grid',
+        active_with_actions: 'grid',
+        active_without_actions: 'grid',
+        automated: 'stacked',
+        event: 'hidden',
+        self_replicating: 'stacked',
+      } as {[k: string]: string};
+    },
+    unhideAll() {
+      this.groupDisplayModes = this.defaultModes();
+      this.activeFilter = 'all';
     },
     getGroupCards(groupKey: string) {
       const t = this.player.tableau || [];
@@ -175,6 +219,28 @@ export default Vue.extend({
       return !this.activeFilter || this.activeFilter === 'all' || this.activeFilter === groupKey;
     },
   },
+  watch: {
+    activeFilter(newVal: string) {
+      // If filter is 'all' or cleared, restore default display modes
+      if (!newVal || newVal === 'all') {
+        this.groupDisplayModes = this.defaultModes();
+        return;
+      }
+
+      // If the selected group has no cards, ignore the filter change
+      if (this.getGroupCards(newVal).length === 0) return;
+
+      // Otherwise, set the selected group to grid and hide all others
+      for (let i = 0; i < this.groupOrder.length; i++) {
+        const k = this.groupOrder[i];
+        if (k === newVal) {
+          this.groupDisplayModes[k] = 'grid';
+        } else {
+          this.groupDisplayModes[k] = 'hidden';
+        }
+      }
+    },
+  },
   computed: {
     CardType(): typeof CardType {
       return CardType;
@@ -200,6 +266,20 @@ export default Vue.extend({
       }
       return false;
     },
+    hiddenGroups(): string[] {
+      return this.groupOrder.filter((k) => this.groupDisplayModes[k] === 'hidden' && this.getGroupCards(k).length > 0 && this.activeFilterMatches(k));
+    },
+    filterOptions() {
+      const opts: Array<{key:string,title:string}> = [{ key: 'all', title: this.$t('All') as string }];
+      for (let i = 0; i < this.groupOrder.length; i++) {
+        const k = this.groupOrder[i];
+        const cards = this.getGroupCards(k) || [];
+        if (cards.length > 0) {
+          opts.push({ key: k, title: this.groupTitle(k) });
+        }
+      }
+      return opts;
+    },
   },
 });
 </script>
@@ -207,12 +287,20 @@ export default Vue.extend({
 <style scoped>
 .other-player-columns { display: flex; gap: 12px; align-items:flex-start; }
 .other-player-left { flex: 0 0 320px; display:flex; flex-direction:column; gap:8px; }
-.other-player-right { flex: 1 1 auto; display:flex; gap:12px; flex-wrap:wrap; }
-.other-player-right .card-group-wrapper { flex: 0 0 220px; }
+.other-player-right { flex: 1 1 auto; display:flex; gap:12px; flex-wrap:wrap; align-content:flex-start; }
+.other-player-right .card-group-wrapper { flex: 1 1 220px; min-width:220px; }
 .other-player-left .card-group-wrapper { width:100%; }
-.card-group-wrapper { background: rgba(0,0,0,0.15); padding:8px; border-radius:4px; }
+ .card-group-wrapper { background: transparent; padding:8px; border-radius:4px; }
 .group-cards.grid-layout { display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; }
 .group-cards.grid-layout .cardbox { margin:4px; }
 .group-cards.grid-small { display:grid; grid-template-columns: 1fr; gap:6px; }
+
+.hidden-groups { display:flex; flex-direction:column; gap:6px; }
+.hidden-groups .unhide-all { margin-top:6px; display:flex; justify-content:flex-end; }
+.card-group-wrapper.full-width { width:100%; }
+
+.full-width-row { width:100%; margin:8px 0; }
+.card-group-wrapper { transition: opacity 200ms ease, transform 200ms ease; }
+.card-group-wrapper[style*="display: none"] { opacity: 0; transform: translateY(-8px); }
 
 </style>
