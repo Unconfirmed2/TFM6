@@ -17,12 +17,14 @@ import Vue from 'vue';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
 import LanguageSelectionDialog from '@/client/components/LanguageSelectionDialog.vue';
 import {LANGUAGES} from '@/common/constants';
+import {createClickOffMixin} from '@/client/mixins/clickOffMixin';
 
 export default Vue.extend({
   name: 'LanguageIcon',
   components: {
     'language-selection-dialog': LanguageSelectionDialog,
   },
+  mixins: [createClickOffMixin('languagePanelOpen')],
   data() {
     return {
       languagePanelOpen: false,

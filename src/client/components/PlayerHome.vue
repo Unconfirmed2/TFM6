@@ -343,7 +343,7 @@ export default Vue.extend({
     boardWrapperStyle(): any {
       // Provide an initial style object; width/height are updated dynamically
       return {
-        overflow: 'hidden',
+        overflow: 'visible',
         display: 'inline-block',
       };
     },
@@ -537,9 +537,9 @@ export default Vue.extend({
 .board-ma-container { display:flex; flex-direction:column; gap:16px; align-items:flex-start; }
 .board-area { flex: 1 1 60%; }
 .ma-area { flex: 0 0 320px; display:flex; flex-direction:column; gap:8px; }
-.board-ma-outer { display:inline-block; transition: width 150ms ease, height 150ms ease; }
+.board-ma-outer { display:flex; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
-.board-ma-controls-row { display:flex; justify-content:flex-end; margin-bottom:8px; }
+.board-ma-controls-row { display:flex; justify-content:flex-start; margin-bottom:8px; }
 .board-scale-controls { display:flex; align-items:center; gap:8px; }
 .board-scale-value { font-weight:600; }
 .btn-small { padding:4px 8px; font-size:14px; }
