@@ -1,6 +1,6 @@
 <template>
   <div id="player-home" :class="(game.turmoil ? 'with-turmoil': '')">
-    <top-bar :playerView="playerView" />
+  <player-info-top-container :playerView="playerView" />
 
     <div v-if="game.phase === 'end'">
       <div class="player_home_block">
@@ -263,7 +263,7 @@ import Turmoil from '@/client/components/turmoil/Turmoil.vue';
 import PlanetaryTracks from '@/client/components/pathfinders/PlanetaryTracks.vue';
 import DynamicTitle from '@/client/components/common/DynamicTitle.vue';
 import SortableCards from '@/client/components/SortableCards.vue';
-import TopBar from '@/client/components/TopBar.vue';
+import PlayerInfoTopContainer from '@/client/components/PlayerInfoTopContainer.vue';
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import StackedCards from '@/client/components/StackedCards.vue';
 import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
@@ -363,7 +363,7 @@ export default Vue.extend({
     'log-panel': LogPanel,
     'turmoil': Turmoil,
     'sortable-cards': SortableCards,
-    'top-bar': TopBar,
+  'player-info-top-container': PlayerInfoTopContainer,
     MoonBoard,
     PlanetaryTracks,
     'stacked-cards': StackedCards,

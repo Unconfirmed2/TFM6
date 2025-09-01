@@ -11,7 +11,7 @@
             </span>
           </div>
           <div>
-            <div class="icon-first-player" v-if="firstForGen && playerView.players.length > 1" v-i18n>1st</div>
+            <div class="icon-first-player-top" v-if="firstForGen && playerView.players.length > 1" v-i18n>1st</div>
             <player-status :timer="player.timer" :showTimer="playerView.game.gameOptions.showTimers" :liveTimer="playerView.game.phase !== Phase.END" :firstForGen="firstForGen" v-trim-whitespace :actionLabel="actionLabel"/>
           </div>
         </div>
@@ -35,7 +35,14 @@
             <span class="tag-count-display">{{ availableBlueActionCount() }}</span>
           </div>
         </div>
-        <PlayerTags :player="player" :playerView="playerView" :hideZeroTags="hideZeroTags" :isTopBar="isTopBar" />
+        <!-- Place tags directly below the status-and-res block and show full tag list -->
+        <PlayerTags
+          :player="player"
+          :playerView="playerView"
+          :hideZeroTags="false"
+          :isTopBar="isTopBar"
+          :conciseTagsViewDefaultValue="false"
+        />
         <PlayerAlliedParty :player="player"/>
       </div>
 </template>
@@ -57,7 +64,7 @@ import {ActionLabel} from './ActionLabel';
 import {playerSymbol} from '@/client/utils/playerSymbol';
 
 export default Vue.extend({
-  name: 'PlayerInfo',
+  name: 'PlayerInfoTopDuplicate',
   props: {
     player: {
       type: Object as () => PublicPlayerModel,
@@ -114,7 +121,6 @@ export default Vue.extend({
       return vueRoot(this).setVisibilityState('pinned_player_' + playerIndex, false);
     },
     pinPlayer() {
-      // Toggle only this player's pinned state. Do not affect other players.
       const playerPinned = this.isPinned(this.playerIndex);
       if (playerPinned) {
         this.unpin(this.playerIndex);
@@ -126,7 +132,6 @@ export default Vue.extend({
       return this.isPinned(this.playerIndex) ? 'hide' : 'show';
     },
     togglePlayerDetails() {
-      // show cards container and hide others (same behavior for all players)
       this.pinPlayer();
     },
     getClasses(): string {

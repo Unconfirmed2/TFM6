@@ -19,23 +19,11 @@ import PlayerInfo from '@/client/components/overview/PlayerInfo.vue';
 import OverviewSettings from '@/client/components/overview/OverviewSettings.vue';
 import OtherPlayer from '@/client/components/OtherPlayer.vue';
 import {ViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
+import { rotatePlayersStartingAt, playerIndex } from '@/client/utils/playerOrder';
 import {ActionLabel} from '@/client/components/overview/ActionLabel';
 import {Phase} from '@/common/Phase';
-import {Color} from '@/common/Color';
 
 const SHOW_NEXT_LABEL_MIN = 2;
-
-export const playerIndex = (
-  color: Color,
-  players: Array<PublicPlayerModel>,
-): number => {
-  for (let idx = 0; idx < players.length; idx++) {
-    if (players[idx].color === color) {
-      return idx;
-    }
-  }
-  return -1;
-};
 
 export default Vue.extend({
   name: 'PlayersOverview',
@@ -73,14 +61,8 @@ export default Vue.extend({
         return players;
       }
 
-      let result = [] as Array<PublicPlayerModel>;
-      const currentPlayerIndex = playerIndex(this.thisPlayer.color, this.players);
-
-      // rotate the array so the player after the focused user appears first
-      const currentPlayerOffset = currentPlayerIndex + 1;
-      result = players.slice(currentPlayerOffset).concat(players.slice(0, currentPlayerOffset));
-      // return full rotated list (include the focused user as well)
-      return result;
+      // rotate so the focused/current user appears first
+      return rotatePlayersStartingAt(players, this.thisPlayer.color);
     },
     getActionLabel(player: PublicPlayerModel): ActionLabel {
       if (this.playerView.game.phase === Phase.DRAFTING) {
