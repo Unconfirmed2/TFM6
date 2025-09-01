@@ -72,6 +72,8 @@ const data: MainAppData = {
   'pinned_player_2': true,
   'pinned_player_3': true,
   'pinned_player_4': true,
+  'pinned_player_5': true,
+  'pinned_player_6': true,
     'turmoil_parties': false,
   } as {[x: string]: boolean},
   game: undefined as SimpleGameModel | undefined,

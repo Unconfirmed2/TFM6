@@ -28,31 +28,44 @@
 
     <div v-if="thisPlayer.tableau.length > 0">
       <div class="player_home_block">
-        <a name="board" class="player_home_anchor"></a>
-        <board
-          :spaces="game.spaces"
-          :expansions="game.gameOptions.expansions"
-          :venusScaleLevel="game.venusScaleLevel"
-          :boardName ="game.gameOptions.boardName"
-          :oceans_count="game.oceans"
-          :oxygen_level="game.oxygenLevel"
-          :temperature="game.temperature"
-          :altVenusBoard="game.gameOptions.altVenusBoard"
-          :aresData="game.aresData"
-          :tileView="tileView"
-          @toggleTileView="cycleTileView()"
-          id="shortkey-board"
-        />
+        <div class="board-ma-controls-row">
+          <div class="board-scale-controls">
+            <button class="btn btn-small" @click.prevent="decreaseBoardScale">-</button>
+            <span class="board-scale-value">{{ boardScale.toFixed(1) }}x</span>
+            <button class="btn btn-small" @click.prevent="increaseBoardScale">+</button>
+          </div>
+        </div>
+        <div ref="boardWrapper" :style="boardWrapperStyle" class="board-ma-outer">
+          <div ref="boardMa" class="board-ma-container" :style="{ transform: 'scale(' + boardScale + ')', transformOrigin: 'top left' }">
+            <div class="board-area">
+            <a name="board" class="player_home_anchor"></a>
+            <board
+              :spaces="game.spaces"
+              :expansions="game.gameOptions.expansions"
+              :venusScaleLevel="game.venusScaleLevel"
+              :boardName ="game.gameOptions.boardName"
+              :oceans_count="game.oceans"
+              :oxygen_level="game.oxygenLevel"
+              :temperature="game.temperature"
+              :altVenusBoard="game.gameOptions.altVenusBoard"
+              :aresData="game.aresData"
+              :tileView="tileView"
+              @toggleTileView="cycleTileView()"
+              id="shortkey-board"
+            />
 
-        <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
+            <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
 
-        <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
+            <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
 
-        <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
+            <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
+          </div>
 
-        <div v-if="playerView.players.length > 1" class="player_home_block--milestones-and-awards">
-          <Milestones :milestones="game.milestones" />
-          <Awards :awards="game.awards" />
+          <div class="ma-area" v-if="playerView.players.length > 1">
+            <Milestones :milestones="game.milestones" />
+            <Awards :awards="game.awards" />
+          </div>
+          </div>
         </div>
       </div>
 
@@ -169,8 +182,12 @@
       <dynamic-title title="Game details" :color="thisPlayer.color"/>
 
       <div class="player_home_block" v-if="playerView.players.length > 1">
-        <Milestones :showScores="false" :milestones="game.milestones" />
-        <Awards :awards="game.awards" />
+        <div class="board-ma-container">
+          <div class="ma-area">
+            <Milestones :showScores="false" :milestones="game.milestones" />
+            <Awards :awards="game.awards" />
+          </div>
+        </div>
       </div>
 
       <div class="player_home_block player_home_block--turnorder nofloat" v-if="playerView.players.length>1">
@@ -266,6 +283,9 @@ export interface PlayerHomeModel {
   showAutomatedCards: boolean;
   showEventCards: boolean;
   tileView: TileView;
+  boardScale: number;
+  baseBoardWidth: number;
+  baseBoardHeight: number;
 }
 
 class TerraformedAlertDialog {
@@ -282,6 +302,9 @@ export default Vue.extend({
       showAutomatedCards: !preferences.hide_automated_cards,
       showEventCards: !preferences.hide_event_cards,
       tileView: 'show',
+  boardScale: 1,
+  baseBoardWidth: 0,
+  baseBoardHeight: 0,
     };
   },
   watch: {
@@ -316,6 +339,13 @@ export default Vue.extend({
     cardsInHandCount(): number {
       const playerView = this.playerView;
       return playerView.cardsInHand.length + playerView.preludeCardsInHand.length + playerView.ceoCardsInHand.length;
+    },
+    boardWrapperStyle(): any {
+      // Provide an initial style object; width/height are updated dynamically
+      return {
+        overflow: 'hidden',
+        display: 'inline-block',
+      };
     },
     
   },
@@ -421,6 +451,30 @@ export default Vue.extend({
     isInitialDraftingPhase(): boolean {
       return (this.game.phase === Phase.INITIALDRAFTING) && this.game.gameOptions.initialDraftVariant;
     },
+    setBoardScale(scale: number) {
+      this.boardScale = Math.max(0.4, Math.min(2, scale));
+      this.updateBoardWrapperSize();
+    },
+    increaseBoardScale() {
+      this.setBoardScale(this.boardScale + 0.1);
+    },
+    decreaseBoardScale() {
+      this.setBoardScale(this.boardScale - 0.1);
+    },
+    updateBoardWrapperSize() {
+      try {
+        const wrapper: any = (this as any).$refs.boardWrapper;
+        const ma: any = (this as any).$refs.boardMa;
+        if (wrapper && ma) {
+          const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
+          const h = this.baseBoardHeight || ma.getBoundingClientRect().height;
+          wrapper.style.width = Math.round(w * this.boardScale) + 'px';
+          wrapper.style.height = Math.round(h * this.boardScale) + 'px';
+        }
+      } catch (e) {
+        // ignore
+      }
+    },
     getToggleLabel(hideType: string): string {
       if (hideType === 'HAND') {
         return (this.showHand ? '✔' : '');
@@ -455,12 +509,38 @@ export default Vue.extend({
   },
   mounted() {
     window.addEventListener('keydown', this.navigatePage);
+    // initialize board size and listeners for scaling
+    this.$nextTick(() => {
+      const ma: any = (this as any).$refs.boardMa;
+      if (ma) {
+        const rect = ma.getBoundingClientRect();
+        this.baseBoardWidth = rect.width;
+        this.baseBoardHeight = rect.height;
+        this.updateBoardWrapperSize();
+      }
+      window.addEventListener('resize', this.updateBoardWrapperSize);
+    });
     if (this.game.isTerraformed && TerraformedAlertDialog.shouldAlert && getPreferences().show_alerts) {
       alert('Mars is Terraformed!');
       // Avoids repeated calls.
       TerraformedAlertDialog.shouldAlert = false;
     }
   },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.updateBoardWrapperSize);
+  },
 });
 
 </script>
+
+<style scoped>
+.board-ma-container { display:flex; flex-direction:column; gap:16px; align-items:flex-start; }
+.board-area { flex: 1 1 60%; }
+.ma-area { flex: 0 0 320px; display:flex; flex-direction:column; gap:8px; }
+.board-ma-outer { display:inline-block; transition: width 150ms ease, height 150ms ease; }
+.board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
+.board-ma-controls-row { display:flex; justify-content:flex-end; margin-bottom:8px; }
+.board-scale-controls { display:flex; align-items:center; gap:8px; }
+.board-scale-value { font-weight:600; }
+.btn-small { padding:4px 8px; font-size:14px; }
+</style>
