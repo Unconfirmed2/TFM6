@@ -12,7 +12,7 @@
           </div>
           <div>
             <div class="icon-first-player-top" v-if="firstForGen && playerView.players.length > 1" v-i18n>1st</div>
-            <player-status :timer="player.timer" :showTimer="playerView.game.gameOptions.showTimers" :liveTimer="playerView.game.phase !== Phase.END" :firstForGen="firstForGen" v-trim-whitespace :actionLabel="actionLabel"/>
+            <player-status :timer="player.timer" :showTimer="playerView.game.gameOptions.showTimers" :liveTimer="playerView.game.phase !== Phase.END" :firstForGen="firstForGen" v-trim-whitespace :actionLabel="actionLabel" :isTop="true"/>
           </div>
         </div>
           <PlayerResources :player="player" v-trim-whitespace />

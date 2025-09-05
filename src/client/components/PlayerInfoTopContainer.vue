@@ -1,13 +1,15 @@
 <template>
   <div class="player-info-top-container">
     <PlayerInfoTopDuplicate
-      v-for="(p, idx) in playerView.players"
+      v-for="(p, idx) in getPlayersInOrder()"
       :key="p.color + '-' + idx"
       :player="p"
       :playerView="playerView"
       :playerIndex="idx"
-      :hideZeroTags="true"
+      :hideZeroTags="false"
       :isTopBar="true"
+      :firstForGen="getIsFirstForGen(p)"
+      :actionLabel="getActionLabel(p)"
     />
   </div>
 </template>
@@ -16,7 +18,12 @@
 import Vue from 'vue';
 import PlayerInfo from '@/client/components/overview/PlayerInfo.vue';
 import PlayerInfoTopDuplicate from '@/client/components/overview/PlayerInfoTopDuplicate.vue';
-import { PlayerViewModel } from '@/common/models/PlayerModel';
+import { getPlayersInOrder, isFirstForGen, playerIndex } from '@/client/components/overview/playerHelpers';
+import { PlayerViewModel, PublicPlayerModel } from '@/common/models/PlayerModel';
+import { ActionLabel } from '@/client/components/overview/ActionLabel';
+import { Phase } from '@/common/Phase';
+
+const SHOW_NEXT_LABEL_MIN = 2;
 
 export default Vue.extend({
   name: 'player-info-top-container',
@@ -28,6 +35,68 @@ export default Vue.extend({
   components: {
   PlayerInfo,
   PlayerInfoTopDuplicate,
+  },
+  computed: {
+    players(): Array<PublicPlayerModel> {
+      return this.playerView.players;
+    },
+    thisPlayer(): PublicPlayerModel {
+      return this.playerView.thisPlayer;
+    },
+  },
+  methods: {
+    // Match PlayersOverview.getIsFirstForGen: first player in the players array
+    getIsFirstForGen(player: any): boolean {
+      return isFirstForGen(player, this.playerView.players);
+    },
+    // Mirror PlayersOverview.getPlayersInOrder rotation so current player is first
+    getPlayersInOrder(): Array<any> {
+      return getPlayersInOrder(this.playerView.players, this.playerView.thisPlayer);
+    },
+    // Copy getActionLabel logic from PlayersOverview
+    getActionLabel(player: PublicPlayerModel): ActionLabel {
+      if (this.playerView.game.phase === Phase.DRAFTING) {
+        if (player.needsToDraft) {
+          return 'drafting';
+        } else {
+          return 'none';
+        }
+      } else if (this.playerView.game.phase === Phase.RESEARCH) {
+        if (player.needsToResearch) {
+          return 'researching';
+        } else {
+          return 'none';
+        }
+      }
+      if (this.playerView.game.passedPlayers.includes(player.color)) {
+        return 'passed';
+      }
+      if (player.isActive) return 'active';
+      const notPassedPlayers = this.players.filter(
+        (p: PublicPlayerModel) => !this.playerView.game.passedPlayers.includes(p.color),
+      );
+
+      const currentPlayerIndex = playerIndex(
+        player.color,
+        notPassedPlayers,
+      );
+
+      if (currentPlayerIndex === -1) {
+        return 'none';
+      }
+
+      const prevPlayerIndex =
+                currentPlayerIndex === 0 ?
+                  notPassedPlayers.length - 1 :
+                  currentPlayerIndex - 1;
+      const isNext = notPassedPlayers[prevPlayerIndex].isActive;
+
+      if (isNext && this.players.length > SHOW_NEXT_LABEL_MIN) {
+        return 'next';
+      }
+
+      return 'none';
+    },
   },
 });
 </script>
@@ -43,6 +112,7 @@ export default Vue.extend({
 /* Make each player-info card a vertical column so tags sit below status */
 .player-info-top-container > .player-info {
   display: flex;
+  position: relative; /* create containing block for absolutely positioned badge */
   flex-direction: column;
   align-items: stretch;
   min-width: 220px;

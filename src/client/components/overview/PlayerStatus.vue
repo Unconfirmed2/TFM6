@@ -1,6 +1,6 @@
 <template>
       <div class="player-status">
-        <div class="player-status-bottom">
+        <div :class="isTop ? 'player-status-top' : 'player-status-bottom'">
           <div :class="getLabelAndTimerClasses()">
             <div :class="getActionStatusClasses()"><span v-i18n>{{ actionLabel }}</span></div>
             <div class="player-status-timer" v-if="showTimer"><player-timer :timer="timer" :live="liveTimer"/></div>
@@ -30,6 +30,10 @@ export default Vue.extend({
     },
     liveTimer: {
       type: Boolean,
+    },
+    isTop: {
+      type: Boolean,
+      default: false,
     },
   },
   components: {
