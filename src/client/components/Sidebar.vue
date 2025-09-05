@@ -82,7 +82,6 @@ import {GlobalParameter} from '@/common/GlobalParameter';
 import {MoonModel} from '@/common/models/MoonModel';
 import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
 import LanguageIcon from '@/client/components/LanguageIcon.vue';
-import {createClickOffMixin} from '@/client/mixins/clickOffMixin';
 
 export default Vue.extend({
   name: 'sidebar',
@@ -134,7 +133,6 @@ export default Vue.extend({
     PreferencesIcon,
     LanguageIcon,
   },
-  mixins: [createClickOffMixin('ui.gamesetup_detail_open')],
   data() {
     return {
       'ui': {

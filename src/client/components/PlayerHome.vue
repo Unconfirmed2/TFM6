@@ -59,11 +59,11 @@
             <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
 
             <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
-          </div>
 
-          <div class="ma-area" v-if="playerView.players.length > 1">
-            <Milestones :milestones="game.milestones" />
-            <Awards :awards="game.awards" />
+            <div class="ma-area" v-if="playerView.players.length > 1">
+              <Milestones :milestones="game.milestones" />
+              <Awards :awards="game.awards" />
+            </div>
           </div>
           </div>
         </div>
@@ -342,9 +342,14 @@ export default Vue.extend({
     },
     boardWrapperStyle(): any {
       // Provide an initial style object; width/height are updated dynamically
+  const width = this.baseBoardWidth ? Math.round(this.baseBoardWidth * this.boardScale) + 'px' : 'auto';
+  // Add 20px extra to the wrapper height so the outer container is slightly taller
+  const height = this.baseBoardHeight ? (Math.round(this.baseBoardHeight * this.boardScale) + 20) + 'px' : (Math.round(842 * this.boardScale) + 20) + 'px';
       return {
         overflow: 'visible',
-        display: 'inline-block',
+        display: 'flex',
+        width,
+        height,
       };
     },
     
@@ -469,7 +474,8 @@ export default Vue.extend({
           const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
           const h = this.baseBoardHeight || ma.getBoundingClientRect().height;
           wrapper.style.width = Math.round(w * this.boardScale) + 'px';
-          wrapper.style.height = Math.round(h * this.boardScale) + 'px';
+          // Increase wrapper height by 20px to add spacing below the board
+          wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
         }
       } catch (e) {
         // ignore
@@ -514,6 +520,27 @@ export default Vue.extend({
       const ma: any = (this as any).$refs.boardMa;
       if (ma) {
         const rect = ma.getBoundingClientRect();
+        
+        // Debug: Check what's actually happening
+        const maArea = ma.querySelector('.ma-area');
+        const milestones = ma.querySelector('.milestones_cont');
+        const awards = ma.querySelector('.awards_cont');
+        
+        console.log('=== MA Container Debug ===');
+        console.log('Full container:', rect.width, 'x', rect.height);
+        if (maArea) {
+          const maRect = maArea.getBoundingClientRect();
+          console.log('MA area:', maRect.width, 'x', maRect.height);
+        }
+        if (milestones) {
+          const mRect = milestones.getBoundingClientRect();
+          console.log('Milestones container:', mRect.width, 'x', mRect.height);
+        }
+        if (awards) {
+          const aRect = awards.getBoundingClientRect();
+          console.log('Awards container:', aRect.width, 'x', aRect.height);
+        }
+        
         this.baseBoardWidth = rect.width;
         this.baseBoardHeight = rect.height;
         this.updateBoardWrapperSize();
@@ -533,11 +560,11 @@ export default Vue.extend({
 
 </script>
 
-<style scoped>
-.board-ma-container { display:flex; flex-direction:column; gap:16px; align-items:flex-start; }
-.board-area { flex: 1 1 60%; }
-.ma-area { flex: 0 0 320px; display:flex; flex-direction:column; gap:8px; }
-.board-ma-outer { display:flex; }
+<style>
+.board-ma-container { display:flex; flex-direction:column; gap:20px; align-items:flex-start; flex-wrap:nowrap; }
+.board-area { flex: 1 1 auto; min-width: 320px; align-items:center}
+.ma-area { flex: 0 0 auto; display:flex; flex-direction:column; gap:12px; width: 100%; align-items: center; align-self: center; padding-right: 70px; padding-bottom: 20px; }
+.board-ma-outer { display:inline-flex; transition: width 150ms ease, height 150ms ease; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
 .board-ma-controls-row { display:flex; justify-content:flex-start; margin-bottom:8px; }
 .board-scale-controls { display:flex; align-items:center; gap:8px; }

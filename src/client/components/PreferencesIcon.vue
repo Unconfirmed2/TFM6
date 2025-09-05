@@ -10,14 +10,12 @@
 import Vue from 'vue';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
 import PreferencesDialog from '@/client/components/PreferencesDialog.vue';
-import {createClickOffMixin} from '@/client/mixins/clickOffMixin';
 
 export default Vue.extend({
   name: 'PreferencesIcon',
   components: {
     'preferences-dialog': PreferencesDialog,
   },
-  mixins: [createClickOffMixin('preferencesPanelOpen')],
   data() {
     return {
       preferencesPanelOpen: false,

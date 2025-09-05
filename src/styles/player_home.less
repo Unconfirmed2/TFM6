@@ -531,6 +531,11 @@
 
 .milestones_cont, .awards_cont {
     vertical-align: top;
+    margin-bottom: 12px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: fit-content;
 }
 
 .milestones,
@@ -559,10 +564,9 @@
 
     .ma-block {
         display: inline-block;
-        width: 140px;
-        border-radius: 0 0 5px 5px;
+        width: 105px; /* 140 * 0.75 */
         border-radius: 10px;
-        margin: 5px;
+        margin: 4px; /* ~5 * 0.75 */
         vertical-align: top;
         cursor: pointer;
 
@@ -571,13 +575,13 @@
         }
 
         .ma-score {
-            width: 24px;
-            height: 18px;
-            line-height: 18px;
+            width: 18px; /* 24 * 0.75 */
+            height: 14px; /* 18 * 0.75 -> rounded */
+            line-height: 14px;
             border-radius: 2px;
-            margin: 5px 2px 0px 2px;
+            margin: 4px 2px 0px 2px; /* 5 * 0.75 -> 4 */
             display: inline-block;
-            font-size: 15px;
+            font-size: 11px; /* 15 * 0.75 -> ~11 */
             font-family: Prototype;
             color: black;
             font-weight: normal;
@@ -586,26 +590,33 @@
 
         .ma-scores {
             display: inline-block;
-            width: 144px;
+            width: 108px; /* 144 * 0.75 */
             margin-left: -2px;
         }
 
         .ma-player {
-            margin: 25px 0 0 70px;
+            margin: 19px 0 0 52px; /* 25->19, 70->52 */
             position: absolute;
         }
 
         .ma-name {
             display: inline-block;
-            width: 140px;
-            height: 83px;
+            width: 105px; /* 140 * 0.75 */
+            height: 62px; /* 83 * 0.75 -> ~62 */
             color: black;
-            padding-top: 60px;
-            font-size: 15px;
+            padding-top: 40px; /* nudged up 3px: 60 * 0.75 -> 45, changed to 42 */
+            font-size: 11px; /* 15 * 0.75 -> ~11 */
             text-transform: uppercase;
             text-align: center;
             font-weight: bold;
             border-radius: 10px 10px 0 0;
+            /* Make background images shrink to fit the smaller MA box */
+            background-repeat: no-repeat;
+            background-position: center top;
+            background-size: 105px 62px;
+            /* Nudge the ma-name content up 3px to improve visual alignment */
+            position: relative;
+            top: 2px;
         }
 
         @ma-name:
@@ -660,12 +671,12 @@
 
         .ma-description {
             display: inline-block;
-            width: 140px;
-            height: 70px;
+            width: 105px; /* 140 * 0.75 */
+            height: 52px; /* 70 * 0.75 -> ~52 */
             color: #ddd;
             padding: 0px 2px 0px 2px;
-            font-size: 14px;
-            line-height: 15px;
+            font-size: 11px; /* 14 * 0.75 -> ~11 */
+            line-height: 12px; /* 15 * 0.75 -> ~12 */
             text-align: center;
         }
     }
@@ -681,21 +692,32 @@
     margin: 0 0 0 5px;
 }
 
+/* Nudge the board-cube inside a funded award slightly upward so it lines up visually
+   Targets only the cube inside the paid inline award (does not affect the ma-block cube) */
+.awards .milestone-award-inline.paid .ma-player-cube .board-cube {
+    display: inline-block; /* ensure transform applies */
+    transform: translateY(-5px);
+}
+
 .milestone-award-inline {
     white-space: nowrap;
     color: #000;
     text-transform: uppercase;
     background: linear-gradient(to right, #e28c22, #ffcc64, #e28c22);
-    padding: 1px 33px 1px 10px;
-    width: 190px;
-    letter-spacing: 1px;
+    padding: 2px 8px; /* compact padding */
+    width: auto; /* fit content */
+    letter-spacing: 0.5px;
     text-align: center;
-    font-size: 16px;
-    line-height: 23px;
+    font-size: 14px;
+    line-height: 20px;
     font-weight: bold;
-    margin: 0 5px 0 5px;
-    border-radius: 2px;
-    display: inline-block;
+    margin: 2px 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center; /* center icon + text horizontally */
+    text-align: center;
+    gap: 6px;
     &.paid{
         background: linear-gradient(to right, #e28c22, #ffcc64, #e28c22);
     }
