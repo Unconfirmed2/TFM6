@@ -107,6 +107,7 @@ export default Vue.extend({
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
+  
 }
 
 /* Make each player-info card a vertical column so tags sit below status */

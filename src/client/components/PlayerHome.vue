@@ -342,9 +342,16 @@ export default Vue.extend({
     },
     boardWrapperStyle(): any {
       // Provide an initial style object; width/height are updated dynamically
-  const width = this.baseBoardWidth ? Math.round(this.baseBoardWidth * this.boardScale) + 'px' : 'auto';
-  // Add 20px extra to the wrapper height so the outer container is slightly taller
-  const height = this.baseBoardHeight ? (Math.round(this.baseBoardHeight * this.boardScale) + 20) + 'px' : (Math.round(842 * this.boardScale) + 20) + 'px';
+      const isMobile = window.innerWidth <= 1024;
+      // board-ma-outer should span the available width
+      const width = '100%';
+
+      // On mobile use a fixed base height of 800px that is multiplied by the
+      // current scale. Do NOT multiply again by boardScale (avoid double-scaling).
+      const height = isMobile
+        ? (Math.round(800 * this.boardScale) + 60) + 'px'
+        : ((this.baseBoardHeight ? Math.round(this.baseBoardHeight * this.boardScale) : Math.round(842 * this.boardScale)) + 20) + 'px';
+
       return {
         overflow: 'visible',
         display: 'flex',
@@ -471,11 +478,19 @@ export default Vue.extend({
         const wrapper: any = (this as any).$refs.boardWrapper;
         const ma: any = (this as any).$refs.boardMa;
         if (wrapper && ma) {
-          const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
-          const h = this.baseBoardHeight || ma.getBoundingClientRect().height;
-          wrapper.style.width = Math.round(w * this.boardScale) + 'px';
-          // Increase wrapper height by 20px to add spacing below the board
-          wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
+          const isMobile = window.innerWidth <= 1024;
+
+          if (isMobile) {
+            // Keep full width and compute mobile height as 800 * scale
+            wrapper.style.width = '100%';
+            wrapper.style.height = (Math.round(800 * this.boardScale) + 60) + 'px';
+          } else {
+            // Desktop: use measured sizes and scale them once
+            const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
+            const h = this.baseBoardHeight || ma.getBoundingClientRect().height;
+            wrapper.style.width = Math.round(w * this.boardScale) + 'px';
+            wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
+          }
         }
       } catch (e) {
         // ignore
@@ -564,7 +579,7 @@ export default Vue.extend({
 .board-ma-container { display:flex; flex-direction:column; gap:20px; align-items:flex-start; flex-wrap:nowrap; min-height: 100vh; }
 .board-area { flex: 0 0 auto; min-width: 320px; align-items:center}
 .ma-area { flex: 0 0 auto; display:flex; flex-direction:column; gap:12px; width: 100%; align-items: center; align-self: center; padding-right: 70px; padding-bottom: 20px; }
-.board-ma-outer { display:inline-flex; transition: width 150ms ease, height 150ms ease; }
+.board-ma-outer { display:inline-flex; width: 100%; transition: width 150ms ease, height 150ms ease; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
 .board-ma-controls-row { display:flex; justify-content:flex-start; margin-bottom:8px; }
 .board-scale-controls { display:flex; align-items:center; gap:8px; }
