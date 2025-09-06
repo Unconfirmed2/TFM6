@@ -342,9 +342,13 @@ export default Vue.extend({
     },
     boardWrapperStyle(): any {
       // Provide an initial style object; width/height are updated dynamically
-  const width = this.baseBoardWidth ? Math.round(this.baseBoardWidth * this.boardScale) + 'px' : 'auto';
-  // Add 20px extra to the wrapper height so the outer container is slightly taller
-  const height = this.baseBoardHeight ? (Math.round(this.baseBoardHeight * this.boardScale) + 20) + 'px' : (Math.round(842 * this.boardScale) + 20) + 'px';
+      const isMobile = window.innerWidth <= 1024;
+      const width = this.baseBoardWidth ? Math.round(this.baseBoardWidth * this.boardScale) + 'px' : 'auto';
+      
+      // Use 1000px base height for mobile, measured height for desktop
+      const baseHeight = isMobile ? 800 : (this.baseBoardHeight || 842);
+      const height = (Math.round(baseHeight * this.boardScale) + 20) + 'px';
+      
       return {
         overflow: 'visible',
         display: 'flex',
@@ -471,11 +475,14 @@ export default Vue.extend({
         const wrapper: any = (this as any).$refs.boardWrapper;
         const ma: any = (this as any).$refs.boardMa;
         if (wrapper && ma) {
+          const isMobile = window.innerWidth <= 1024;
           const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
-          const h = this.baseBoardHeight || ma.getBoundingClientRect().height;
+          
+          // Use 1000px base height for mobile, measured height for desktop
+          const baseHeight = isMobile ? 1000 : (this.baseBoardHeight || ma.getBoundingClientRect().height);
+          
           wrapper.style.width = Math.round(w * this.boardScale) + 'px';
-          // Increase wrapper height by 20px to add spacing below the board
-          wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
+          wrapper.style.height = (Math.round(baseHeight * this.boardScale) + 20) + 'px';
         }
       } catch (e) {
         // ignore

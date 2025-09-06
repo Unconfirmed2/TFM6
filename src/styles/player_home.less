@@ -1004,3 +1004,17 @@
 		    width: calc(100% - 450px);
 		}
 }
+
+// Board outer container styles
+.board-ma-outer {
+    display: inline-flex;
+    transition: width 150ms ease, height 150ms ease;
+}
+
+// Mobile/tablet base height (can be overridden by JavaScript)
+@media only screen and (max-width: 1024px) {
+    .board-ma-outer {
+        height: 800px;
+        min-height: 800px;
+    }
+}
