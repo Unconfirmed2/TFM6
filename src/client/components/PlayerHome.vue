@@ -561,8 +561,8 @@ export default Vue.extend({
 </script>
 
 <style>
-.board-ma-container { display:flex; flex-direction:column; gap:20px; align-items:flex-start; flex-wrap:nowrap; }
-.board-area { flex: 1 1 auto; min-width: 320px; align-items:center}
+.board-ma-container { display:flex; flex-direction:column; gap:20px; align-items:flex-start; flex-wrap:nowrap; min-height: 100vh; }
+.board-area { flex: 0 0 auto; min-width: 320px; align-items:center}
 .ma-area { flex: 0 0 auto; display:flex; flex-direction:column; gap:12px; width: 100%; align-items: center; align-self: center; padding-right: 70px; padding-bottom: 20px; }
 .board-ma-outer { display:inline-flex; transition: width 150ms ease, height 150ms ease; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }

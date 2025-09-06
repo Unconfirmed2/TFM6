@@ -535,28 +535,41 @@
     display: inline-flex;
     flex-wrap: wrap;
     gap: 8px;
-    width: fit-content;
+    width: 597px; /* Calculated: 5 blocks (113px each) + 4 gaps (8px each) = 565 + 32 = 597px */
+    align-items: flex-start; /* Changed from default to flex-start */
 }
 
 .milestones,
 .awards,
 .tag-overview {
+    .ma-title {
+        display: inline-flex;
+        gap: 8px;
+        align-items: flex-start; /* Changed from center to flex-start */
+        margin-bottom: 2px; /* Consistent 2px gap between header and blocks */
+        min-height: 24px; /* Fixed minimum height for title row */
+        width: 597px; /* Exact width to span 5 blocks: 5×113px + 4×8px gaps = 597px */
+        justify-content: flex-start; /* Ensure proper internal alignment */
+    }
+    
     .ma-clickable {
         font-family: Ubuntu, Sans;
-        letter-spacing: 1px;
-        font-size: 16px;
+        letter-spacing: 0.5px; /* Reduced from 1px to fit more text */
+        font-size: 12px; /* Reduced from 14px to fit in narrower width */
         font-weight: bold;
         color: #ffcc64;
         text-transform: uppercase;
         background: #303030;
-        padding: 1px 5px 1px 10px;
-        border-radius: 2px;
+        padding: 0px 3px 0px 6px; /* Reduced padding for narrower width */
+        border-radius: 10px; /* Increased from 2px to match award block roundness */
         text-decoration: none;
-        width: 140px;
+        width: 105px; /* Changed from 120px to 105px as requested */
+        height: 22px; /* Set height to 22px as requested */
         margin-left: 5px;
         cursor: pointer;
         display: inline-block;
         text-align: center;
+        line-height: 22px; /* Adjust line-height for vertical centering */
     }
     .ma-clickable:focus {
         box-shadow: none;
@@ -569,29 +582,36 @@
         margin: 4px; /* ~5 * 0.75 */
         vertical-align: top;
         cursor: pointer;
+        text-align: center; /* Center content within blocks */
 
         .award-block {
             border-radius: 10px !important;
         }
 
         .ma-score {
-            width: 18px; /* 24 * 0.75 */
-            height: 14px; /* 18 * 0.75 -> rounded */
-            line-height: 14px;
+            width: 18px; /* Fixed width for square badges */
+            height: 18px; /* Fixed height for square badges */
+            line-height: 18px;
             border-radius: 2px;
-            margin: 4px 2px 0px 2px; /* 5 * 0.75 -> 4 */
+            margin: 1px; /* 1px gap between badges */
             display: inline-block;
             font-size: 11px; /* 15 * 0.75 -> ~11 */
             font-family: Prototype;
             color: black;
             font-weight: normal;
             box-shadow: 0 0 1px 1px black;
+            vertical-align: top; /* Align badges to top */
+            text-align: center;
+            padding: 0; /* Ensure no padding affects centering */
         }
 
         .ma-scores {
-            display: inline-block;
-            width: 108px; /* 144 * 0.75 */
-            margin-left: -2px;
+            display: flex; /* Changed from inline-block to flex */
+            justify-content: center; /* Center the score badges */
+            align-items: center; /* Center align vertically */
+            width: 105px; /* Match block width exactly */
+            margin-left: 0px; /* Reset margin for proper centering */
+            margin-top: 7px; /* Increased from 2px to lower scores by 5px */
         }
 
         .ma-player {
@@ -600,11 +620,14 @@
         }
 
         .ma-name {
-            display: inline-block;
+            display: flex; /* Changed to flex for better centering */
+            flex-direction: column; /* Stack content vertically */
+            align-items: center; /* Center horizontally */
+            justify-content: flex-start !important; /* Changed from center to flex-start to allow padding-top to work */
             width: 105px; /* 140 * 0.75 */
             height: 62px; /* 83 * 0.75 -> ~62 */
             color: black;
-            padding-top: 40px; /* nudged up 3px: 60 * 0.75 -> 45, changed to 42 */
+            padding-top: 45px !important; /* Force padding-top with !important */
             font-size: 11px; /* 15 * 0.75 -> ~11 */
             text-transform: uppercase;
             text-align: center;
@@ -614,9 +637,9 @@
             background-repeat: no-repeat;
             background-position: center top;
             background-size: 105px 62px;
-            /* Nudge the ma-name content up 3px to improve visual alignment */
+            /* Reset positioning for better alignment */
             position: relative;
-            top: 2px;
+            top: 0px; /* Reset top positioning */
         }
 
         @ma-name:
@@ -704,20 +727,22 @@
     color: #000;
     text-transform: uppercase;
     background: linear-gradient(to right, #e28c22, #ffcc64, #e28c22);
-    padding: 2px 8px; /* compact padding */
-    width: auto; /* fit content */
+    padding: 2px 6px; /* Slightly reduced padding */
+    width: 145px; /* Changed from 120px to 145px as requested */
+    height: 22px; /* Fixed height for consistency */
     letter-spacing: 0.5px;
     text-align: center;
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 12px; /* Reduced from 14px for better fit */
+    line-height: 18px; /* Adjusted for fixed height */
     font-weight: bold;
-    margin: 2px 4px;
+    margin: 1px 2px; /* Reduced margins for tighter fit */
     border-radius: 4px;
     display: inline-flex;
     align-items: center;
     justify-content: center; /* center icon + text horizontally */
     text-align: center;
-    gap: 6px;
+    gap: 4px; /* Reduced from 6px */
+    vertical-align: top; /* Ensure top alignment */
     &.paid{
         background: linear-gradient(to right, #e28c22, #ffcc64, #e28c22);
     }
@@ -727,18 +752,18 @@
 }
 .milestone-award-price {
     background-image: url(./assets/resources/megacredit.png);
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    background-size: 30px;
-    margin-top: -3px;
-    margin-left: 70px;
-    transform: scale(0.8);
+    width: 18px; /* Reduced from 30px */
+    height: 18px; /* Reduced from 30px */
+    line-height: 18px; /* Reduced from 30px */
+    background-size: 18px; /* Reduced from 30px */
+    margin-top: 0px; /* Reset from -3px */
+    margin-left: 0px; /* Reset from 70px for proper centering */
+    transform: none; /* Remove scale transform */
 
     font-family: Prototype;
     color: black;
     font-weight: normal;
-    font-size: 18px;
+    font-size: 12px; /* Reduced from 18px */
     text-align: center;
 }
 
