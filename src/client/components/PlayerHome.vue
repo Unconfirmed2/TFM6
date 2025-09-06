@@ -37,7 +37,6 @@
         </div>
         <div ref="boardWrapper" :style="boardWrapperStyle" class="board-ma-outer">
           <div ref="boardMa" class="board-ma-container" :style="{ transform: 'scale(' + boardScale + ')', transformOrigin: 'top left' }">
-            <Milestones v-if="playerView.players.length > 1" :milestones="game.milestones" />
             <div class="board-area">
             <a name="board" class="player_home_anchor"></a>
             <board
@@ -55,15 +54,16 @@
               id="shortkey-board"
             />
 
-            <Awards v-if="playerView.players.length > 1" :awards="game.awards" />
-
             <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
 
             <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
 
             <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
 
-            
+            <div class="ma-area" v-if="playerView.players.length > 1">
+              <Milestones :milestones="game.milestones" />
+              <Awards :awards="game.awards" />
+            </div>
           </div>
           </div>
         </div>
@@ -183,8 +183,10 @@
 
       <div class="player_home_block" v-if="playerView.players.length > 1">
         <div class="board-ma-container">
-          <Milestones v-if="playerView.players.length > 1" :showScores="false" :milestones="game.milestones" />
-          <Awards v-if="playerView.players.length > 1" :awards="game.awards" />
+          <div class="ma-area">
+            <Milestones :showScores="false" :milestones="game.milestones" />
+            <Awards :awards="game.awards" />
+          </div>
         </div>
       </div>
 
@@ -340,12 +342,15 @@ export default Vue.extend({
     },
     boardWrapperStyle(): any {
       // Provide an initial style object; width/height are updated dynamically
-      // Use measured base sizes for both mobile and desktop so rendering
-      // follows a single unified path.
-      const baseW = this.baseBoardWidth || 842;
-      const baseH = this.baseBoardHeight || 842;
-      const width = Math.round(baseW * this.boardScale) + 'px';
-      const height = (Math.round(baseH * this.boardScale) + 20) + 'px';
+      const isMobile = window.innerWidth <= 1024;
+      // board-ma-outer should span the available width
+      const width = '100%';
+
+      // On mobile use a fixed base height of 800px that is multiplied by the
+      // current scale. Do NOT multiply again by boardScale (avoid double-scaling).
+      const height = isMobile
+        ? (Math.round(800 * this.boardScale) + 60) + 'px'
+        : ((this.baseBoardHeight ? Math.round(this.baseBoardHeight * this.boardScale) : Math.round(842 * this.boardScale)) + 20) + 'px';
 
       return {
         overflow: 'visible',
@@ -473,19 +478,16 @@ export default Vue.extend({
         const wrapper: any = (this as any).$refs.boardWrapper;
         const ma: any = (this as any).$refs.boardMa;
         if (wrapper && ma) {
-          // Unified sizing: measure the inner container when available and
-          // scale the measured width/height for the wrapper. Fall back to
-          // stored base values or sensible defaults.
-          try {
-            const rect = ma.getBoundingClientRect();
-            const w = this.baseBoardWidth || rect.width || 842;
-            const h = this.baseBoardHeight || rect.height || 842;
-            wrapper.style.width = Math.round(w * this.boardScale) + 'px';
-            wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
-          } catch (e) {
-            // Fallback to stored base sizes or defaults
-            const w = this.baseBoardWidth || 842;
-            const h = this.baseBoardHeight || 842;
+          const isMobile = window.innerWidth <= 1024;
+
+          if (isMobile) {
+            // Keep full width and compute mobile height as 800 * scale
+            wrapper.style.width = '100%';
+            wrapper.style.height = (Math.round(800 * this.boardScale) + 60) + 'px';
+          } else {
+            // Desktop: use measured sizes and scale them once
+            const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
+            const h = this.baseBoardHeight || ma.getBoundingClientRect().height;
             wrapper.style.width = Math.round(w * this.boardScale) + 'px';
             wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
           }
@@ -535,12 +537,16 @@ export default Vue.extend({
         const rect = ma.getBoundingClientRect();
         
         // Debug: Check what's actually happening
+        const maArea = ma.querySelector('.ma-area');
         const milestones = ma.querySelector('.milestones_cont');
         const awards = ma.querySelector('.awards_cont');
         
         console.log('=== MA Container Debug ===');
         console.log('Full container:', rect.width, 'x', rect.height);
-        
+        if (maArea) {
+          const maRect = maArea.getBoundingClientRect();
+          console.log('MA area:', maRect.width, 'x', maRect.height);
+        }
         if (milestones) {
           const mRect = milestones.getBoundingClientRect();
           console.log('Milestones container:', mRect.width, 'x', mRect.height);
@@ -570,8 +576,9 @@ export default Vue.extend({
 </script>
 
 <style>
-.board-ma-container { display:flex; flex-direction:row; gap:20px; height:fit-content; align-items:flex-start; flex-wrap:nowrap; min-height: 100vh; }
+.board-ma-container { display:flex; flex-direction:column; gap:20px; align-items:flex-start; flex-wrap:nowrap; min-height: 100vh; }
 .board-area { flex: 0 0 auto; min-width: 320px; align-items:center}
+.ma-area { flex: 0 0 auto; display:flex; flex-direction:column; gap:12px; width: 100%; align-items: center; align-self: center; padding-right: 70px; padding-bottom: 20px; }
 .board-ma-outer { display:inline-flex; width: 100%; transition: width 150ms ease, height 150ms ease; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
 .board-ma-controls-row { display:flex; justify-content:flex-start; margin-bottom:8px; }
