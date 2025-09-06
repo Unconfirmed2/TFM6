@@ -110,7 +110,6 @@
           :step="game.step"></log-panel>
       </div>
 
-      
 
       <div v-if="thisPlayer.selfReplicatingRobotsCards.length > 0" class="player_home_block">
         <dynamic-title title="Self-replicating Robots cards" :color="thisPlayer.color"/>
@@ -302,9 +301,9 @@ export default Vue.extend({
       showAutomatedCards: !preferences.hide_automated_cards,
       showEventCards: !preferences.hide_event_cards,
       tileView: 'show',
-  boardScale: 1,
-  baseBoardWidth: 0,
-  baseBoardHeight: 0,
+      boardScale: 1,
+      baseBoardWidth: 0,
+      baseBoardHeight: 0,
     };
   },
   watch: {
@@ -344,11 +343,11 @@ export default Vue.extend({
       // Provide an initial style object; width/height are updated dynamically
       const isMobile = window.innerWidth <= 1024;
       const width = this.baseBoardWidth ? Math.round(this.baseBoardWidth * this.boardScale) + 'px' : 'auto';
-      
-      // Use 1000px base height for mobile, measured height for desktop
-      const baseHeight = isMobile ? 800 : (this.baseBoardHeight || 842);
+
+      // Use measured height for both mobile and desktop, with fallback to reasonable defaults
+      const baseHeight = this.baseBoardHeight || (isMobile ? 800 : 842);
       const height = (Math.round(baseHeight * this.boardScale) + 20) + 'px';
-      
+
       return {
         overflow: 'visible',
         display: 'flex',
@@ -356,7 +355,7 @@ export default Vue.extend({
         height,
       };
     },
-    
+
   },
 
   components: {
@@ -372,7 +371,7 @@ export default Vue.extend({
     'log-panel': LogPanel,
     'turmoil': Turmoil,
     'sortable-cards': SortableCards,
-  'player-info-top-container': PlayerInfoTopContainer,
+    'player-info-top-container': PlayerInfoTopContainer,
     MoonBoard,
     PlanetaryTracks,
     'stacked-cards': StackedCards,
@@ -477,10 +476,10 @@ export default Vue.extend({
         if (wrapper && ma) {
           const isMobile = window.innerWidth <= 1024;
           const w = this.baseBoardWidth || ma.getBoundingClientRect().width;
-          
-          // Use 1000px base height for mobile, measured height for desktop
-          const baseHeight = isMobile ? 1000 : (this.baseBoardHeight || ma.getBoundingClientRect().height);
-          
+
+          // Use measured height for both mobile and desktop, with fallback to reasonable defaults
+          const baseHeight = this.baseBoardHeight || (isMobile ? 800 : ma.getBoundingClientRect().height);
+
           wrapper.style.width = Math.round(w * this.boardScale) + 'px';
           wrapper.style.height = (Math.round(baseHeight * this.boardScale) + 20) + 'px';
         }
@@ -515,7 +514,7 @@ export default Vue.extend({
         return '';
       }
     },
-    
+
   },
   destroyed() {
     window.removeEventListener('keydown', this.navigatePage);
@@ -527,12 +526,12 @@ export default Vue.extend({
       const ma: any = (this as any).$refs.boardMa;
       if (ma) {
         const rect = ma.getBoundingClientRect();
-        
+
         // Debug: Check what's actually happening
         const maArea = ma.querySelector('.ma-area');
         const milestones = ma.querySelector('.milestones_cont');
         const awards = ma.querySelector('.awards_cont');
-        
+
         console.log('=== MA Container Debug ===');
         console.log('Full container:', rect.width, 'x', rect.height);
         if (maArea) {
@@ -547,7 +546,7 @@ export default Vue.extend({
           const aRect = awards.getBoundingClientRect();
           console.log('Awards container:', aRect.width, 'x', aRect.height);
         }
-        
+
         this.baseBoardWidth = rect.width;
         this.baseBoardHeight = rect.height;
         this.updateBoardWrapperSize();

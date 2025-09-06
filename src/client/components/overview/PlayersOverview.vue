@@ -19,7 +19,7 @@ import PlayerInfo from '@/client/components/overview/PlayerInfo.vue';
 import OverviewSettings from '@/client/components/overview/OverviewSettings.vue';
 import OtherPlayer from '@/client/components/OtherPlayer.vue';
 import {ViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
-import { playerIndex, getPlayersInOrder } from '@/client/components/overview/playerHelpers';
+import {playerIndex, getPlayersInOrder} from '@/client/components/overview/playerHelpers';
 import {ActionLabel} from '@/client/components/overview/ActionLabel';
 import {Phase} from '@/common/Phase';
 
@@ -55,10 +55,10 @@ export default Vue.extend({
       return this.players.length > 0;
     },
     getIsFirstForGen(player: PublicPlayerModel): boolean {
-  return playerIndex(player.color, this.players) === 0;
+      return playerIndex(player.color, this.players) === 0;
     },
     getPlayersInOrder(): Array<PublicPlayerModel> {
-  return getPlayersInOrder(this.players, this.thisPlayer);
+      return getPlayersInOrder(this.players, this.thisPlayer);
     },
     getActionLabel(player: PublicPlayerModel): ActionLabel {
       if (this.playerView.game.phase === Phase.DRAFTING) {
