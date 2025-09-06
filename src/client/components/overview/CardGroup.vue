@@ -28,22 +28,22 @@
 import Vue from 'vue';
 import StackedCards from '@/client/components/StackedCards.vue';
 import Card from '@/client/components/card/Card.vue';
-import { isCardActivated } from '@/client/utils/CardUtils';
+import {isCardActivated} from '@/client/utils/CardUtils';
 
 export default Vue.extend({
   name: 'CardGroup',
   props: {
-  title: { type: String, required: true },
-  cards: { type: Array as () => any[], required: true },
-  mode: { type: String, default: 'grid' },
-  small: { type: Boolean, default: false },
-  visible: { type: Boolean, default: true },
-  player: { type: Object, required: true },
-  groupKey: { type: String, default: '' },
-  headerOnly: { type: Boolean, default: false },
-  fullWidth: { type: Boolean, default: false },
+    title: {type: String, required: true},
+    cards: {type: Array as () => any[], required: true},
+    mode: {type: String, default: 'grid'},
+    small: {type: Boolean, default: false},
+    visible: {type: Boolean, default: true},
+    player: {type: Object, required: true},
+    groupKey: {type: String, default: ''},
+    headerOnly: {type: Boolean, default: false},
+    fullWidth: {type: Boolean, default: false},
   },
-  components: { 'stacked-cards': StackedCards, Card },
+  components: {'stacked-cards': StackedCards, Card},
   data() {
     return {
       localMode: this.mode,
