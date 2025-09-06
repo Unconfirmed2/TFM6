@@ -103,7 +103,8 @@ export default Vue.extend({
 
 <style scoped>
 .player-info-top-container {
-  display: flex;
+  display: inline-flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
