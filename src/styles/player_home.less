@@ -512,6 +512,8 @@
     .other_player {
         display: flex;
         flex-wrap: wrap;
+        width:100%;
+        overflow:auto;
     }
 
     .player_separator {
@@ -530,13 +532,16 @@
 }
 
 .milestones_cont, .awards_cont {
-    vertical-align: top;
+    margin-right: 30px;
+    vertical-align: middle;
     margin-bottom: 12px;
     display: inline-flex;
     flex-wrap: wrap;
     gap: 8px;
-    width: 597px; /* Calculated: 5 blocks (113px each) + 4 gaps (8px each) = 565 + 32 = 597px */
-    align-items: flex-start; /* Changed from default to flex-start */
+    width: 110px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-items: center;
 }
 
 .milestones,
@@ -545,10 +550,11 @@
     .ma-title {
         display: inline-flex;
         gap: 8px;
+        flex-direction: column;
         align-items: flex-start; /* Changed from center to flex-start */
         margin-bottom: 2px; /* Consistent 2px gap between header and blocks */
         min-height: 24px; /* Fixed minimum height for title row */
-        width: 597px; /* Exact width to span 5 blocks: 5×113px + 4×8px gaps = 597px */
+        width: 110px; /* Exact width to span 5 blocks: 5×113px + 4×8px gaps = 597px */
         justify-content: flex-start; /* Ensure proper internal alignment */
     }
     
@@ -560,12 +566,12 @@
         color: #ffcc64;
         text-transform: uppercase;
         background: #303030;
-        padding: 0px 3px 0px 6px; /* Reduced padding for narrower width */
+        padding: 0px 0px 0px 0px; /* Reduced padding for narrower width */
         border-radius: 10px; /* Increased from 2px to match award block roundness */
         text-decoration: none;
         width: 105px; /* Changed from 120px to 105px as requested */
         height: 22px; /* Set height to 22px as requested */
-        margin-left: 5px;
+        margin-left: 0px;
         cursor: pointer;
         display: inline-block;
         text-align: center;
@@ -579,9 +585,10 @@
         display: inline-block;
         width: 105px; /* 140 * 0.75 */
         border-radius: 10px;
-        margin: 4px; /* ~5 * 0.75 */
+        margin-top: 8px; /* ~5 * 0.75 */
         vertical-align: top;
         cursor: pointer;
+        margin-bottom: 30px;
         text-align: center; /* Center content within blocks */
 
         .award-block {
@@ -599,7 +606,6 @@
             font-family: Prototype;
             color: black;
             font-weight: normal;
-            box-shadow: 0 0 1px 1px black;
             vertical-align: top; /* Align badges to top */
             text-align: center;
             padding: 0; /* Ensure no padding affects centering */
@@ -693,14 +699,19 @@
         })
 
         .ma-description {
+            margin-left: -50px;
+            margin-top: -55px;
             display: inline-block;
-            width: 105px; /* 140 * 0.75 */
-            height: 52px; /* 70 * 0.75 -> ~52 */
+            width: 100px;
+            height: 52px;
             color: #ddd;
-            padding: 0px 2px 0px 2px;
-            font-size: 11px; /* 14 * 0.75 -> ~11 */
-            line-height: 12px; /* 15 * 0.75 -> ~12 */
+            padding: 5px 5px 5px 5px;
+            font-size: 11px;
+            line-height: 12px;
             text-align: center;
+            background-color: black;
+            position: absolute;
+            border-radius: 10px;
         }
     }
 }
@@ -727,15 +738,15 @@
     color: #000;
     text-transform: uppercase;
     background: linear-gradient(to right, #e28c22, #ffcc64, #e28c22);
-    padding: 2px 6px; /* Slightly reduced padding */
-    width: 145px; /* Changed from 120px to 145px as requested */
+    padding: 0px 0px; /* Slightly reduced padding */
+    width: 105px; /* Changed from 120px to 145px as requested */
     height: 22px; /* Fixed height for consistency */
     letter-spacing: 0.5px;
     text-align: center;
     font-size: 12px; /* Reduced from 14px for better fit */
     line-height: 18px; /* Adjusted for fixed height */
     font-weight: bold;
-    margin: 1px 2px; /* Reduced margins for tighter fit */
+    margin: 0px 0px; /* Reduced margins for tighter fit */
     border-radius: 4px;
     display: inline-flex;
     align-items: center;
@@ -1007,14 +1018,12 @@
 
 // Board outer container styles
 .board-ma-outer {
-    display: inline-flex;
+    display: flex;
+    flex-direction: row;
+    overflow: visible;
+    width: 100%;
+    height: fit-content;
+    margin-bottom: 50px;
     transition: width 150ms ease, height 150ms ease;
 }
 
-// Mobile/tablet base height (can be overridden by JavaScript)
-@media only screen and (max-width: 1024px) {
-    .board-ma-outer {
-        height: 800px;
-        min-height: 800px;
-    }
-}

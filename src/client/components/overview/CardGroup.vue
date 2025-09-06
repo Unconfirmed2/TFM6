@@ -64,11 +64,11 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.group-header { display:flex; align-items:center; gap:8px; margin:6px 0; }
+.group-header { display:flex; align-items:stretch; gap:8px; margin:6px 0;flex-direction:row;flex-wrap:nowrap; }
 .group-title { font-weight:600; }
 .group-count { color: #ccc; }
 .group-mode-select { margin-left:auto; }
-.group-cards.grid-two { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; }
+.group-cards.grid-two { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; width:fit-content;}
 .group-cards.grid-small { display:flex; flex-direction:column; gap:6px; }
 .cardbox { margin:4px; flex: 0 0 180px; }
 

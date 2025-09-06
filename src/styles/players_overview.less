@@ -78,9 +78,18 @@
 }
 
 .players-overview {
-    position: relative;
-    display: table-caption;
-    margin-top: 40px;
+     position: relative;
+     display: flex;
+     margin-top: 40px;
+     /* Allow the players overview to use the full width of its container
+         and avoid being limited by max-width defaults. This implements
+         the "option B" requested: width: 100% / max-width: none. */
+     width: 100%;
+     padding-right: 20px;
+     max-width: none;
+     box-sizing: border-box;
+     flex-direction: column;
+     overflow: auto;
     .player-divider {
         height: 1px;
         width: 100%;
@@ -307,15 +316,4 @@
     position: relative;
 }
 
-@media only screen and (max-width: 1740px)  {
-    .players-overview {
-        .player-info {
-            flex-flow: column !important;
-            width: fit-content;
-        }
-        .player-status-and-res {
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-        }
-    }
-}
+
