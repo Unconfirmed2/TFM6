@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Terraforming Mars — Main</title>
+  <link rel="stylesheet" href="/build/styles.css" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background: #000; color: #fff; }
+    nav.topnav { max-width: 420px; margin: 32px auto; }
+    nav.topnav ul { list-style: none; padding: 0; margin: 0; }
+    nav.topnav li { margin: 12px 0; }
+    nav.topnav a { display:block; padding: 22px 18px; background: rgba(255,255,255,0.06); color: #fff; text-decoration:none; border-radius:8px; font-size:20px; font-weight:700; }
+    main { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+    section { background: rgba(255,255,255,0.02); padding: 18px; border-radius: 8px; margin-bottom: 16px; }
+    .play-btn { display:inline-block; margin-top:8px; padding:10px 14px; background:#1a73e8; color:#fff; text-decoration:none; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <nav class="topnav" aria-label="Main navigation">
+    <ul>
+      <li><a href="#new-game">NEW GAME</a></li>
+      <li><a href="#how-to-play">HOW TO PLAY</a></li>
+      <li><a href="#cards-list">CARDS LIST</a></li>
+      <li><a href="#board-game">BOARD GAME</a></li>
+      <li><a href="#about-us">ABOUT US</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div id="app" aria-hidden="false"></div>
+
+    <section id="new-game">
+      <h2>New Game</h2>
+      <p>Start a new game of Terraforming Mars. The interactive client will mount below.</p>
+      <a class="play-btn" href="#" onclick="window.location.hash='';return false;">Play</a>
+    </section>
+
+    <section id="how-to-play">
+      <h2>How to play</h2>
+      <p>Rules, tips and an overview. Browse the in-site documentation or start a tutorial.</p>
+    </section>
+
+    <section id="cards-list">
+      <h2>Cards list</h2>
+      <p>Explore the complete list of cards used in the game.</p>
+    </section>
+
+    <section id="board-game">
+      <h2>Board game</h2>
+      <p>View the board and pieces used for the physical game.</p>
+    </section>
+
+    <section id="about-us">
+      <h2>About us</h2>
+      <p>Information about the project and contributors.</p>
+    </section>
+  </main>
+
+  <noscript>
+    <div style="text-align:center;color:#ffcc00;margin:18px">This site works best with JavaScript enabled.</div>
+  </noscript>
+
+  <script src="/build/main.js" defer></script>
+</body>
+</html>
