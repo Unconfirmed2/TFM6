@@ -249,6 +249,63 @@ export const mainAppSettings = {
     } else {
       app.screen = 'start-screen';
     }
+
+    // Debug helper: if URL contains ?btnDebug=1, show a small badge that
+    // displays the isServerSideRequestInProgress flag and allows clearing it.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('btnDebug') === '1') {
+        const badge = document.createElement('div');
+        badge.id = 'btn-debug-badge';
+        badge.style.position = 'fixed';
+        badge.style.right = '8px';
+        badge.style.bottom = '8px';
+        badge.style.padding = '8px 10px';
+        badge.style.background = 'rgba(0,0,0,0.7)';
+        badge.style.color = 'white';
+        badge.style.fontSize = '12px';
+        badge.style.zIndex = '9999';
+        badge.style.borderRadius = '6px';
+        badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        badge.style.pointerEvents = 'auto';
+
+        const txt = document.createElement('div');
+        txt.id = 'btn-debug-text';
+        txt.style.marginBottom = '6px';
+        badge.appendChild(txt);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = 'Clear Busy';
+        clearBtn.style.fontSize = '12px';
+        clearBtn.style.padding = '4px 6px';
+        clearBtn.style.cursor = 'pointer';
+        clearBtn.onclick = () => {
+          try {
+            (app as unknown as MainAppData).isServerSideRequestInProgress = false;
+            updateText();
+          } catch (e) {
+            // ignore
+          }
+        };
+        badge.appendChild(clearBtn);
+
+        document.body.appendChild(badge);
+
+        function updateText() {
+          try {
+            const val = ((app as unknown as MainAppData).isServerSideRequestInProgress) ? 'true' : 'false';
+            (document.getElementById('btn-debug-text') as HTMLElement).innerText = 'serverBusy: ' + val;
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        updateText();
+        setInterval(updateText, 500);
+      }
+    } catch (e) {
+      // ignore any debug setup errors
+    }
   },
 };
 
