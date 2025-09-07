@@ -67,6 +67,8 @@ The code for the Yunohost Terraforming-Mars package is in this [GitHub repo](htt
 
 (Warning, this is not specifically supported.)
 
+## ⬤ I want to deploy on Vercel
+For Vercel deployments, see `README.vercel.md` for a minimal guide.
 ## ⬤ I want to report a bug or feature request
 Add it to our [issues tab](https://github.com/bafolts/terraforming-mars/issues/new).
 
