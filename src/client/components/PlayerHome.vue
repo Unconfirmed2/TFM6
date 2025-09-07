@@ -579,7 +579,7 @@ export default Vue.extend({
 .board-area { flex: 0 0 auto; min-width: 320px; align-items:center}
 .board-ma-outer { display:inline-flex; width: 100%; transition: width 150ms ease, height 150ms ease; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
-.board-ma-outer, .board-ma-container {
+.board-ma-outer {
   /* Place the board below UI controls (non-negative z-index is safe). */
   z-index: 0;
 }
