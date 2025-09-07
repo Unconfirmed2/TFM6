@@ -579,6 +579,15 @@ export default Vue.extend({
 .board-area { flex: 0 0 auto; min-width: 320px; align-items:center}
 .board-ma-outer { display:inline-flex; width: 100%; transition: width 150ms ease, height 150ms ease; }
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
+.board-ma-outer, .board-ma-container {
+  /* Place the board below UI controls (non-negative z-index is safe). */
+  z-index: -5;
+}
+.player_home_block.player_home_block--actions {
+  /* Ensure the actions area (where buttons live) sits above the board */
+  position: relative;
+  z-index: 10;
+}
 .board-ma-controls-row { display:flex; justify-content:flex-start; margin-bottom:8px; }
 .board-scale-controls { display:flex; align-items:center; gap:8px; }
 .board-scale-value { font-weight:600; }
