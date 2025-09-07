@@ -108,8 +108,8 @@ export default Vue.extend({
     },
   },
   methods: {
-       
-    
+
+
     getClasses(): string {
       return `player-info ${playerColorClass(this.player.color, 'bg_transparent')}`;
     },

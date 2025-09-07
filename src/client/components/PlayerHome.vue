@@ -63,7 +63,7 @@
 
             <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
 
-            
+
           </div>
           </div>
         </div>
@@ -110,7 +110,6 @@
           :step="game.step"></log-panel>
       </div>
 
-      
 
       <div v-if="thisPlayer.selfReplicatingRobotsCards.length > 0" class="player_home_block">
         <dynamic-title title="Self-replicating Robots cards" :color="thisPlayer.color"/>
@@ -300,9 +299,9 @@ export default Vue.extend({
       showAutomatedCards: !preferences.hide_automated_cards,
       showEventCards: !preferences.hide_event_cards,
       tileView: 'show',
-  boardScale: 1,
-  baseBoardWidth: 0,
-  baseBoardHeight: 0,
+      boardScale: 1,
+      baseBoardWidth: 0,
+      baseBoardHeight: 0,
     };
   },
   watch: {
@@ -352,7 +351,7 @@ export default Vue.extend({
         height,
       };
     },
-    
+
   },
 
   components: {
@@ -368,7 +367,7 @@ export default Vue.extend({
     'log-panel': LogPanel,
     'turmoil': Turmoil,
     'sortable-cards': SortableCards,
-  'player-info-top-container': PlayerInfoTopContainer,
+    'player-info-top-container': PlayerInfoTopContainer,
     MoonBoard,
     PlanetaryTracks,
     'stacked-cards': StackedCards,
@@ -526,7 +525,7 @@ export default Vue.extend({
         return '';
       }
     },
-    
+
   },
   destroyed() {
     window.removeEventListener('keydown', this.navigatePage);
@@ -538,14 +537,14 @@ export default Vue.extend({
       const ma: any = (this as any).$refs.boardMa;
       if (ma) {
         const rect = ma.getBoundingClientRect();
-        
+
         // Debug: Check what's actually happening
         const milestones = ma.querySelector('.milestones_cont');
         const awards = ma.querySelector('.awards_cont');
-        
+
         console.log('=== MA Container Debug ===');
         console.log('Full container:', rect.width, 'x', rect.height);
-        
+
         if (milestones) {
           const mRect = milestones.getBoundingClientRect();
           console.log('Milestones container:', mRect.width, 'x', mRect.height);
@@ -554,13 +553,13 @@ export default Vue.extend({
           const aRect = awards.getBoundingClientRect();
           console.log('Awards container:', aRect.width, 'x', aRect.height);
         }
-        
-  // compute unscaled width by undoing any current scale transform
-  const unscaledW = this.boardScale ? rect.width / this.boardScale : rect.width;
-  this.baseBoardWidth = unscaledW || this.baseBoardWidth || rect.width || 842;
-  // force base height to 600px as requested
-  this.baseBoardHeight = 700;
-  this.updateBoardWrapperSize();
+
+        // compute unscaled width by undoing any current scale transform
+        const unscaledW = this.boardScale ? rect.width / this.boardScale : rect.width;
+        this.baseBoardWidth = unscaledW || this.baseBoardWidth || rect.width || 842;
+        // force base height to 600px as requested
+        this.baseBoardHeight = 700;
+        this.updateBoardWrapperSize();
       }
       window.addEventListener('resize', this.updateBoardWrapperSize);
     });

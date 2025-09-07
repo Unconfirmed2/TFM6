@@ -112,10 +112,10 @@ export default Vue.extend({
     },
   },
   components: {
-  AppButton,
+    AppButton,
     'stacked-cards': StackedCards,
     Card,
-  'card-group': CardGroup,
+    'card-group': CardGroup,
   },
   data() {
     return {
@@ -177,24 +177,24 @@ export default Vue.extend({
     getGroupCards(groupKey: string) {
       const t = this.player.tableau || [];
       switch (groupKey) {
-        case 'corporation':
-          return this.getCardsByType(t, [CardType.CORPORATION]);
-        case 'prelude':
-          return this.getCardsByType(t, [CardType.PRELUDE]);
-        case 'ceo':
-          return this.getCardsByType(t, [CardType.CEO]);
-        case 'active_with_actions':
-          return this.sortActiveCards(this.getCardsByType(t, [CardType.ACTIVE])).filter((c: any) => this.isCardActivated(c, this.player));
-        case 'active_without_actions':
-          return this.sortActiveCards(this.getCardsByType(t, [CardType.ACTIVE])).filter((c: any) => !this.isCardActivated(c, this.player));
-        case 'automated':
-          return this.getCardsByType(t, [CardType.AUTOMATED]);
-        case 'event':
-          return this.getCardsByType(t, [CardType.EVENT]);
-        case 'self_replicating':
-          return this.player.selfReplicatingRobotsCards || [];
-        default:
-          return [];
+      case 'corporation':
+        return this.getCardsByType(t, [CardType.CORPORATION]);
+      case 'prelude':
+        return this.getCardsByType(t, [CardType.PRELUDE]);
+      case 'ceo':
+        return this.getCardsByType(t, [CardType.CEO]);
+      case 'active_with_actions':
+        return this.sortActiveCards(this.getCardsByType(t, [CardType.ACTIVE])).filter((c: any) => this.isCardActivated(c, this.player));
+      case 'active_without_actions':
+        return this.sortActiveCards(this.getCardsByType(t, [CardType.ACTIVE])).filter((c: any) => !this.isCardActivated(c, this.player));
+      case 'automated':
+        return this.getCardsByType(t, [CardType.AUTOMATED]);
+      case 'event':
+        return this.getCardsByType(t, [CardType.EVENT]);
+      case 'self_replicating':
+        return this.player.selfReplicatingRobotsCards || [];
+      default:
+        return [];
       }
     },
     groupTitle(key: string) {
@@ -270,12 +270,12 @@ export default Vue.extend({
       return this.groupOrder.filter((k) => this.groupDisplayModes[k] === 'hidden' && this.getGroupCards(k).length > 0 && this.activeFilterMatches(k));
     },
     filterOptions() {
-      const opts: Array<{key:string,title:string}> = [{ key: 'all', title: this.$t('All') as string }];
+      const opts: Array<{key:string, title:string}> = [{key: 'all', title: this.$t('All') as string}];
       for (let i = 0; i < this.groupOrder.length; i++) {
         const k = this.groupOrder[i];
         const cards = this.getGroupCards(k) || [];
         if (cards.length > 0) {
-          opts.push({ key: k, title: this.groupTitle(k) });
+          opts.push({key: k, title: this.groupTitle(k)});
         }
       }
       return opts;
