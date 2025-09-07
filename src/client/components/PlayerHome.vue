@@ -339,18 +339,16 @@ export default Vue.extend({
       return playerView.cardsInHand.length + playerView.preludeCardsInHand.length + playerView.ceoCardsInHand.length;
     },
     boardWrapperStyle(): any {
-      // Provide an initial style object; width/height are updated dynamically
-      // Use measured base sizes for both mobile and desktop so rendering
-      // follows a single unified path.
-      const baseW = this.baseBoardWidth || 842;
-      const baseH = this.baseBoardHeight || 842;
-      const width = Math.round(baseW * this.boardScale) + 'px';
-      const height = (Math.round(baseH * this.boardScale) + 20) + 'px';
+      // Provide an initial style object; width/height are updated dynamically.
+      // Use full responsive width for the wrapper and a fixed base height
+      // of 600px which will be scaled by `boardScale`.
+      const baseH = this.baseBoardHeight || 600;
+      const height = (Math.round(baseH * this.boardScale) + 80) + 'px';
 
       return {
         overflow: 'visible',
         display: 'flex',
-        width,
+        width: '100%', // occupy the parent width responsively
         height,
       };
     },
@@ -478,16 +476,23 @@ export default Vue.extend({
           // stored base values or sensible defaults.
           try {
             const rect = ma.getBoundingClientRect();
-            const w = this.baseBoardWidth || rect.width || 842;
-            const h = this.baseBoardHeight || rect.height || 842;
-            wrapper.style.width = Math.round(w * this.boardScale) + 'px';
-            wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
+
+            // Undo the current transform scale to compute the unscaled base width
+            const unscaledW = this.boardScale ? rect.width / this.boardScale : rect.width;
+
+            // store measured unscaled width and force base height to 600px
+            this.baseBoardWidth = unscaledW || this.baseBoardWidth || rect.width || 842;
+            this.baseBoardHeight = this.baseBoardHeight || 600;
+
+            // keep wrapper responsive in width and set scaled height
+            wrapper.style.width = '100%';
+            wrapper.style.height = (Math.round(this.baseBoardHeight * this.boardScale) + 80) + 'px';
           } catch (e) {
-            // Fallback to stored base sizes or defaults
-            const w = this.baseBoardWidth || 842;
-            const h = this.baseBoardHeight || 842;
-            wrapper.style.width = Math.round(w * this.boardScale) + 'px';
-            wrapper.style.height = (Math.round(h * this.boardScale) + 20) + 'px';
+            // Fallback: responsive width and scaled base height
+            this.baseBoardWidth = this.baseBoardWidth || 842;
+            this.baseBoardHeight = this.baseBoardHeight || 600;
+            wrapper.style.width = '100%';
+            wrapper.style.height = (Math.round(this.baseBoardHeight * this.boardScale) + 80) + 'px';
           }
         }
       } catch (e) {
@@ -550,9 +555,12 @@ export default Vue.extend({
           console.log('Awards container:', aRect.width, 'x', aRect.height);
         }
         
-        this.baseBoardWidth = rect.width;
-        this.baseBoardHeight = rect.height;
-        this.updateBoardWrapperSize();
+  // compute unscaled width by undoing any current scale transform
+  const unscaledW = this.boardScale ? rect.width / this.boardScale : rect.width;
+  this.baseBoardWidth = unscaledW || this.baseBoardWidth || rect.width || 842;
+  // force base height to 600px as requested
+  this.baseBoardHeight = 700;
+  this.updateBoardWrapperSize();
       }
       window.addEventListener('resize', this.updateBoardWrapperSize);
     });
