@@ -1,0 +1,45 @@
+name: Docker build and deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  docker-build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t tfm-builder:latest .
+
+      - name: Create temporary container
+        run: |
+          docker create --name tfm_builder_container tfm-builder:latest
+
+      - name: Copy build folder from container
+        run: |
+          mkdir -p build
+          docker cp tfm_builder_container:/usr/src/app/build/. ./build || true
+
+      - name: Remove temporary container
+        run: docker rm tfm_builder_container || true
+
+      - name: List build contents (debug)
+        run: ls -la build || true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./build
+
+      - name: Deploy to GitHub Pages (via Pages API)
+        uses: actions/deploy-pages@v1
