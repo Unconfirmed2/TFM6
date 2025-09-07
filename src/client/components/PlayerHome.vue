@@ -581,7 +581,7 @@ export default Vue.extend({
 .board-ma-container { transform-origin: top left; transition: transform 150ms ease; }
 .board-ma-outer, .board-ma-container {
   /* Place the board below UI controls (non-negative z-index is safe). */
-  z-index: -5;
+  z-index: 0;
 }
 .player_home_block.player_home_block--actions {
   /* Ensure the actions area (where buttons live) sits above the board */
