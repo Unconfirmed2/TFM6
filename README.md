@@ -32,7 +32,7 @@ The board game is great and this repository highly recommends [purchasing it](ht
 [Join us over on Discord!](https://discord.gg/afeyggbN6Y).
 
 ## ⬤ I want to play!
-There's a instance available at https://terraforming-mars.herokuapp.com/. It's generally reliable, but read more below.
+There's a instance available at https://terraforming-mars.herokuapp.com/. It's generally reliable, but read more below. dd
 
 There's also this excellent
 [YouTube playlist](https://youtube.com/playlist?list=PLCGE78n9vCqhhmRe9YCrRh2GLNMPB_3j1) focused on tutorials custom for this app.
