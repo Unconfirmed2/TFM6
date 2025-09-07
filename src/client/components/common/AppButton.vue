@@ -1,5 +1,13 @@
 <template>
-  <button @click="$emit('click')" class="btn" :class="outerClass" :disabled="isDisabled" v-i18n>
+  <button
+    @click="handleClick"
+    @touchend.prevent="handleTouch"
+    @pointerup.prevent="handleTouch"
+    class="btn"
+    :class="outerClass"
+    :disabled="isDisabled"
+    v-i18n
+  >
     <span v-if="hasIcon" class="icon" :class="iconClass" data-test="icon"/>
     <span v-i18n v-else>{{ title }}</span>
   </button>
@@ -102,6 +110,26 @@ export default Vue.extend({
         'icon-plus': this.type === 'plus',
         'icon-minus': this.type === 'minus',
       };
+    },
+  },
+  data() {
+    return {
+      // timestamp of the last touch/pointer event to avoid duplicate click firing
+      lastTouchAt: 0,
+    };
+  },
+  methods: {
+    handleTouch(_: Event) {
+      // mark touch time and emit click once
+      this.lastTouchAt = Date.now();
+      this.$emit('click');
+    },
+    handleClick(_: Event) {
+      // ignore mouse click events that immediately follow a touch (common on mobile)
+      if (Date.now() - this.lastTouchAt < 500) {
+        return;
+      }
+      this.$emit('click');
     },
   },
 });
