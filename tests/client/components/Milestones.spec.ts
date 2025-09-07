@@ -23,9 +23,10 @@ describe('Milestones', () => {
         ],
       },
     });
-    const toggler = milestone.find('a[class="ma-clickable"]');
-    await toggler.trigger('click');
-    const test = milestone.find('div[class*="ma-name--milestones');
+  // use data-test attribute and class selector so the element is reliably found
+  const toggler = milestone.find('a[data-test="toggle-milestones"]');
+  await toggler.trigger('click');
+  const test = milestone.find('div.ma-name--milestones');
     expect(test.classes()).to.contain('ma-name');
     expect(test.classes()).to.contain('ma-name--forester');
   });

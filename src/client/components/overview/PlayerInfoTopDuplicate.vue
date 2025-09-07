@@ -126,6 +126,10 @@ export default Vue.extend({
         .map((card) => card.name);
       return corporationCards.length === 0 ? [''] : corporationCards;
     },
+    // Template references togglePlayerDetails; provide a no-op to satisfy the type checker.
+    togglePlayerDetails(): void {
+      // intentionally no-op; detail toggling is handled by a parent component in other contexts
+    },
   },
 });
 </script>

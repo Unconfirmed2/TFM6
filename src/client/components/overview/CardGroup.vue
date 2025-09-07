@@ -11,7 +11,7 @@
     </div>
     <div v-if="!headerOnly" :class="{ 'full-width': fullWidth }">
       <div v-if="localMode === 'grid'" :class="['group-cards', small ? 'grid-small' : (fullWidth ? 'grid-one' : 'grid-two')]">
-        <div v-for="card in cards" :key="card.name" class="cardbox">
+  <div v-for="(card, idx) in typedCards" :key="idx" class="cardbox">
           <Card :card="card" :actionUsed="isCardActivated(card, player)" :cubeColor="player.color"/>
         </div>
       </div>
@@ -34,7 +34,7 @@ export default Vue.extend({
   name: 'CardGroup',
   props: {
     title: {type: String, required: true},
-    cards: {type: Array as () => any[], required: true},
+    cards: {type: Array as () => Array<{name?: string}>, required: true},
     mode: {type: String, default: 'grid'},
     small: {type: Boolean, default: false},
     visible: {type: Boolean, default: true},
@@ -48,6 +48,11 @@ export default Vue.extend({
     return {
       localMode: this.mode,
     } as any;
+  },
+  computed: {
+    typedCards(): Array<{name?: string}> {
+      return (this.cards as Array<{name?: string}>) || [];
+    },
   },
   watch: {
     mode(v: string) {

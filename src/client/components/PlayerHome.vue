@@ -262,7 +262,6 @@ import DynamicTitle from '@/client/components/common/DynamicTitle.vue';
 import SortableCards from '@/client/components/SortableCards.vue';
 import PlayerInfoTopContainer from '@/client/components/PlayerInfoTopContainer.vue';
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
-import StackedCards from '@/client/components/StackedCards.vue';
 import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
 import UndergroundTokens from '@/client/components/underworld/UndergroundTokens.vue';
 import {playerColorClass} from '@/common/utils/utils';
@@ -370,7 +369,6 @@ export default Vue.extend({
     'player-info-top-container': PlayerInfoTopContainer,
     MoonBoard,
     PlanetaryTracks,
-    'stacked-cards': StackedCards,
     PurgeWarning,
     UndergroundTokens,
   },

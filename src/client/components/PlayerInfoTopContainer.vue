@@ -16,7 +16,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import PlayerInfo from '@/client/components/overview/PlayerInfo.vue';
 import PlayerInfoTopDuplicate from '@/client/components/overview/PlayerInfoTopDuplicate.vue';
 import {getPlayersInOrder, isFirstForGen, playerIndex} from '@/client/components/overview/playerHelpers';
 import {PlayerViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
@@ -33,7 +32,6 @@ export default Vue.extend({
     },
   },
   components: {
-    PlayerInfo,
     PlayerInfoTopDuplicate,
   },
   computed: {

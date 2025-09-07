@@ -91,7 +91,7 @@
 
 import Vue from 'vue';
 
-import StackedCards from '@/client/components/StackedCards.vue';
+// StackedCards component isn't used in this file; avoid importing unused component to satisfy linter
 import {PublicPlayerModel} from '@/common/models/PlayerModel';
 import {vueRoot} from '@/client/components/vueRoot';
 import Card from '@/client/components/card/Card.vue';
@@ -113,7 +113,6 @@ export default Vue.extend({
   },
   components: {
     AppButton,
-    'stacked-cards': StackedCards,
     Card,
     'card-group': CardGroup,
   },
@@ -231,8 +230,7 @@ export default Vue.extend({
       if (this.getGroupCards(newVal).length === 0) return;
 
       // Otherwise, set the selected group to grid and hide all others
-      for (let i = 0; i < this.groupOrder.length; i++) {
-        const k = this.groupOrder[i];
+      for (const k of this.groupOrder) {
         if (k === newVal) {
           this.groupDisplayModes[k] = 'grid';
         } else {
@@ -256,8 +254,7 @@ export default Vue.extend({
     },
     hasAnyCards(): boolean {
       // Return true if any configured group has cards that match the active filter
-      for (let i = 0; i < this.groupOrder.length; i++) {
-        const g = this.groupOrder[i];
+      for (const g of this.groupOrder) {
         const cards = this.getGroupCards(g) || [];
         if (cards.length === 0) continue;
         if (this.groupDisplayModes[g] === 'hidden') continue;
@@ -271,8 +268,7 @@ export default Vue.extend({
     },
     filterOptions() {
       const opts: Array<{key:string, title:string}> = [{key: 'all', title: this.$t('All') as string}];
-      for (let i = 0; i < this.groupOrder.length; i++) {
-        const k = this.groupOrder[i];
+      for (const k of this.groupOrder) {
         const cards = this.getGroupCards(k) || [];
         if (cards.length > 0) {
           opts.push({key: k, title: this.groupTitle(k)});
