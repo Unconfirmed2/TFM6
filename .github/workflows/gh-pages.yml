@@ -21,9 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build client assets
-        # only build client assets (faster than full server build)
-        run: npm run build:client
+      - name: Build project
+        # Full build (server + client). make:cards requires compiled server helper files.
+        run: npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
