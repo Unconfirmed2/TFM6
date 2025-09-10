@@ -1,5 +1,5 @@
 <template>
-  <div class="card-container filterDiv hover-hide-res" :class="cardClasses">
+  <div class="card-container filterDiv hover-hide-res" :class="[cardClasses, {magnified: magnified}]" @click.prevent="toggleMagnify" @touchend.prevent="toggleMagnify">
       <div class="card-content-wrapper" v-i18n @mouseover="hovering = true" @mouseleave="hovering = false">
           <div v-if="!isStandardProject" class="card-cost-and-tags">
               <CardCost :amount="cost" :newCost="reducedCost" />
@@ -17,6 +17,15 @@
       <slot/>
   </div>
 </template>
+
+<style scoped>
+/* Magnify card on click/tap. Scale to 200% (100% increase) centered from the middle. */
+.card-container { transition: transform 150ms ease; transform-origin: center center; }
+.card-container.magnified { transform: scale(2); z-index: 50; position: relative; }
+
+/* Improve tap feedback on mobile */
+.card-container { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+</style>
 
 <script lang="ts">
 
@@ -83,6 +92,7 @@ export default Vue.extend({
     return {
       cardInstance: card,
       hovering: false,
+      magnified: false,
     };
   },
   computed: {
@@ -186,6 +196,11 @@ export default Vue.extend({
     },
     playerCubeClass(): string {
       return `board-cube board-cube--${this.cubeColor}`;
+    },
+  },
+  methods: {
+    toggleMagnify(): void {
+      this.magnified = !this.magnified;
     },
   },
 });
