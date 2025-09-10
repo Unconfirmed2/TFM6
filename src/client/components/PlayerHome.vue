@@ -1,6 +1,9 @@
 <template>
   <div id="player-home" :class="(game.turmoil ? 'with-turmoil': '')">
-  <player-info-top-container :playerView="playerView" />
+  <player-info-top-container 
+    :playerView="playerView" 
+    :class="{ 'sticky-player-overview': playerOverviewSticky }"
+  />
 
     <div v-if="game.phase === 'end'">
       <div class="player_home_block">
@@ -26,80 +29,114 @@
         <div class="deck-size">{{ game.deckSize }}</div>
     </sidebar>
 
+    <!-- Board Arrangement Controls -->
+    <board-arrangement-controls
+      @arrangement-changed="onArrangementChanged"
+      @visibility-changed="onVisibilityChanged"
+      @sticky-changed="onStickyChanged"
+    />
+
     <div v-if="thisPlayer.tableau.length > 0">
-      <div class="player_home_block">
-        <div class="board-ma-controls-row">
-          <div class="board-scale-controls">
-            <button class="btn btn-small" @click.prevent="decreaseBoardScale">-</button>
-            <span class="board-scale-value">{{ boardScale.toFixed(1) }}x</span>
-            <button class="btn btn-small" @click.prevent="increaseBoardScale">+</button>
+      <!-- Dynamically ordered board sections -->
+      <template v-for="sectionKey in boardElementOrder" :key="sectionKey">
+        
+        <!-- Board/Map Section -->
+        <div v-if="sectionKey === 'board' && isBoardElementVisible('board')" class="player_home_block">
+          <div class="board-ma-controls-row">
+            <div class="board-scale-controls">
+              <button class="btn btn-small" @click.prevent="decreaseBoardScale">-</button>
+              <span class="board-scale-value">{{ boardScale.toFixed(1) }}x</span>
+              <button class="btn btn-small" @click.prevent="increaseBoardScale">+</button>
+            </div>
+          </div>
+          <div ref="boardWrapper" :style="boardWrapperStyle" class="board-ma-outer">
+            <div ref="boardMa" class="board-ma-container" :style="{ transform: 'scale(' + boardScale + ')', transformOrigin: 'top left' }">
+              <Milestones v-if="playerView.players.length > 1" :milestones="game.milestones" />
+              <div class="board-area">
+              <a name="board" class="player_home_anchor"></a>
+              <board
+                :spaces="game.spaces"
+                :expansions="game.gameOptions.expansions"
+                :venusScaleLevel="game.venusScaleLevel"
+                :boardName ="game.gameOptions.boardName"
+                :oceans_count="game.oceans"
+                :oxygen_level="game.oxygenLevel"
+                :temperature="game.temperature"
+                :altVenusBoard="game.gameOptions.altVenusBoard"
+                :aresData="game.aresData"
+                :tileView="tileView"
+                @toggleTileView="cycleTileView()"
+                id="shortkey-board"
+              />
+
+              <Awards v-if="playerView.players.length > 1" :awards="game.awards" />
+
+              <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
+
+              <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
+
+              <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
+
+            </div>
+            </div>
           </div>
         </div>
-        <div ref="boardWrapper" :style="boardWrapperStyle" class="board-ma-outer">
-          <div ref="boardMa" class="board-ma-container" :style="{ transform: 'scale(' + boardScale + ')', transformOrigin: 'top left' }">
-            <Milestones v-if="playerView.players.length > 1" :milestones="game.milestones" />
-            <div class="board-area">
-            <a name="board" class="player_home_anchor"></a>
-            <board
-              :spaces="game.spaces"
-              :expansions="game.gameOptions.expansions"
-              :venusScaleLevel="game.venusScaleLevel"
-              :boardName ="game.gameOptions.boardName"
-              :oceans_count="game.oceans"
-              :oxygen_level="game.oxygenLevel"
-              :temperature="game.temperature"
-              :altVenusBoard="game.gameOptions.altVenusBoard"
-              :aresData="game.aresData"
-              :tileView="tileView"
-              @toggleTileView="cycleTileView()"
-              id="shortkey-board"
-            />
 
-            <Awards v-if="playerView.players.length > 1" :awards="game.awards" />
+        <!-- Actions Section -->
+        <div v-if="sectionKey === 'actions' && isBoardElementVisible('actions')" class="player_home_block player_home_block--actions nofloat">
+          <a name="actions" class="player_home_anchor"></a>
+          <dynamic-title title="Actions" :color="thisPlayer.color"/>
+          <waiting-for v-if="game.phase !== 'end'" :players="playerView.players" :playerView="playerView" :settings="settings" :waitingfor="playerView.waitingFor"></waiting-for>
+        </div>
 
-            <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
-
-            <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
-
-            <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
-
-
+        <!-- Cards Section -->
+        <template v-if="sectionKey === 'cards' && isBoardElementVisible('cards')">
+          <div class="player_home_block player_home_block--hand" v-if="playerView.draftedCards.length > 0">
+            <dynamic-title title="Drafted cards" :color="thisPlayer.color" />
+            <div v-for="card in playerView.draftedCards" :key="card.name" class="cardbox">
+              <Card :card="card"/>
+            </div>
           </div>
+
+          <a name="cards" class="player_home_anchor"></a>
+          <div class="player_home_block player_home_block--hand" v-if="cardsInHandCount > 0" id="shortkey-hand">
+            <div class="hiding-card-button-row">
+              <dynamic-title title="Cards In Hand" :color="thisPlayer.color"/>
+              <div :class="getHideButtonClass('HAND')" v-on:click.prevent="toggle('HAND')">
+                <div class="played-cards-count">{{cardsInHandCount.toString()}}</div>
+                <div class="played-cards-selection" v-i18n>{{ getToggleLabel('HAND')}}</div>
+              </div>
+              <div class="text-overview" v-i18n>[ toggle cards in hand ]</div>
+            </div>
+            <sortable-cards v-show="isVisible('HAND')" :playerId="playerView.id"
+                            :cards="playerView.preludeCardsInHand
+                                    .concat(playerView.ceoCardsInHand)
+                                    .concat(playerView.cardsInHand)"/>
+          </div>
+        </template>
+
+        <!-- Colonies Section -->
+        <div v-if="sectionKey === 'colonies' && isBoardElementVisible('colonies') && game.colonies.length > 0" class="player_home_block" ref="colonies" id="shortkey-colonies">
+          <a name="colonies" class="player_home_anchor"></a>
+          <dynamic-title title="Colonies" :color="thisPlayer.color"/>
+          <div class="colonies-fleets-cont">
+            <div class="colonies-player-fleets" v-for="colonyPlayer in playerView.players" :key="colonyPlayer.color">
+              <div :class="'colonies-fleet colonies-fleet-'+ colonyPlayer.color" v-for="idx in getFleetsCountRange(colonyPlayer)" :key="idx"></div>
+            </div>
+          </div>
+          <div class="player_home_colony_cont">
+            <div class="player_home_colony" v-for="colony in game.colonies" :key="colony.name">
+              <colony :colony="colony" :active="colony.isActive"></colony>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="player_home_block player_home_block--actions nofloat">
-        <a name="actions" class="player_home_anchor"></a>
-        <dynamic-title title="Actions" :color="thisPlayer.color"/>
-        <waiting-for v-if="game.phase !== 'end'" :players="playerView.players" :playerView="playerView" :settings="settings" :waitingfor="playerView.waitingFor"></waiting-for>
-      </div>
+        <!-- Players Overview Section -->
+        <players-overview v-if="sectionKey === 'players_overview' && isBoardElementVisible('players_overview')" class="player_home_block player_home_block--players nofloat" :playerView="playerView" v-trim-whitespace id="shortkey-playersoverview"/>
 
-      <div class="player_home_block player_home_block--hand" v-if="playerView.draftedCards.length > 0">
-        <dynamic-title title="Drafted cards" :color="thisPlayer.color" />
-        <div v-for="card in playerView.draftedCards" :key="card.name" class="cardbox">
-          <Card :card="card"/>
-        </div>
-      </div>
+      </template>
 
-      <a name="cards" class="player_home_anchor"></a>
-      <div class="player_home_block player_home_block--hand" v-if="cardsInHandCount > 0" id="shortkey-hand">
-        <div class="hiding-card-button-row">
-          <dynamic-title title="Cards In Hand" :color="thisPlayer.color"/>
-          <div :class="getHideButtonClass('HAND')" v-on:click.prevent="toggle('HAND')">
-            <div class="played-cards-count">{{cardsInHandCount.toString()}}</div>
-            <div class="played-cards-selection" v-i18n>{{ getToggleLabel('HAND')}}</div>
-          </div>
-          <div class="text-overview" v-i18n>[ toggle cards in hand ]</div>
-        </div>
-        <sortable-cards v-show="isVisible('HAND')" :playerId="playerView.id"
-                        :cards="playerView.preludeCardsInHand
-                                .concat(playerView.ceoCardsInHand)
-                                .concat(playerView.cardsInHand)"/>
-      </div>
-
-      <players-overview class="player_home_block player_home_block--players nofloat" :playerView="playerView" v-trim-whitespace id="shortkey-playersoverview"/>
-
+      <!-- Log panel - always at the end -->
       <div class="player_home_block nofloat">
         <log-panel
           :id="playerView.id"
@@ -222,20 +259,6 @@
       </details>
     </div>
 
-    <div v-if="game.colonies.length > 0" class="player_home_block" ref="colonies" id="shortkey-colonies">
-      <a name="colonies" class="player_home_anchor"></a>
-      <dynamic-title title="Colonies" :color="thisPlayer.color"/>
-      <div class="colonies-fleets-cont">
-        <div class="colonies-player-fleets" v-for="colonyPlayer in playerView.players" :key="colonyPlayer.color">
-          <div :class="'colonies-fleet colonies-fleet-'+ colonyPlayer.color" v-for="idx in getFleetsCountRange(colonyPlayer)" :key="idx"></div>
-        </div>
-      </div>
-      <div class="player_home_colony_cont">
-        <div class="player_home_colony" v-for="colony in game.colonies" :key="colony.name">
-          <colony :colony="colony" :active="colony.isActive"></colony>
-        </div>
-      </div>
-    </div>
     <div v-if="game.spectatorId">
       <a :href="'/spectator?id=' +game.spectatorId" target="_blank" rel="noopener noreferrer" v-i18n>Spectator link</a>
     </div>
@@ -264,6 +287,7 @@ import PlayerInfoTopContainer from '@/client/components/PlayerInfoTopContainer.v
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
 import UndergroundTokens from '@/client/components/underworld/UndergroundTokens.vue';
+import BoardArrangementControls from '@/client/components/BoardArrangementControls.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
 import {KeyboardNavigation} from '@/client/components/KeyboardNavigation';
@@ -283,6 +307,19 @@ export interface PlayerHomeModel {
   baseBoardWidth: number;
   baseBoardHeight: number;
   headerSticky: boolean;
+  
+  // Board element visibility
+  showBoard: boolean;
+  showActions: boolean;
+  showCards: boolean;
+  showColonies: boolean;
+  showPlayersOverview: boolean;
+  
+  // Player overview sticky
+  playerOverviewSticky: boolean;
+  
+  // Board element order
+  boardElementOrder: string[];
 }
 
 class TerraformedAlertDialog {
@@ -303,6 +340,19 @@ export default Vue.extend({
       baseBoardWidth: 0,
       baseBoardHeight: 0,
       headerSticky: preferences.header_sticky,
+      
+      // Board element visibility
+      showBoard: preferences.show_board,
+      showActions: preferences.show_actions,
+      showCards: preferences.show_cards,
+      showColonies: preferences.show_colonies,
+      showPlayersOverview: preferences.show_players_overview,
+      
+      // Player overview sticky
+      playerOverviewSticky: preferences.player_overview_sticky,
+      
+      // Board element order
+      boardElementOrder: preferences.board_element_order.split(','),
     };
   },
   watch: {
@@ -376,6 +426,7 @@ export default Vue.extend({
     PlanetaryTracks,
     PurgeWarning,
     UndergroundTokens,
+    'board-arrangement-controls': BoardArrangementControls,
   },
   methods: {
     navigatePage(event: KeyboardEvent) {
@@ -533,6 +584,59 @@ export default Vue.extend({
       }
     },
 
+    // Board arrangement methods
+    onArrangementChanged(newOrder: string[]) {
+      this.boardElementOrder = newOrder;
+      this.$forceUpdate(); // Force re-render to apply new order
+    },
+
+    onVisibilityChanged(elementKey: string, visible: boolean) {
+      switch (elementKey) {
+      case 'board':
+        this.showBoard = visible;
+        break;
+      case 'actions':
+        this.showActions = visible;
+        break;
+      case 'cards':
+        this.showCards = visible;
+        break;
+      case 'colonies':
+        this.showColonies = visible;
+        break;
+      case 'players_overview':
+        this.showPlayersOverview = visible;
+        break;
+      }
+    },
+
+    onStickyChanged(sticky: boolean) {
+      this.playerOverviewSticky = sticky;
+    },
+
+    // Get the template element for a board section
+    getBoardSectionKey(elementKey: string): string {
+      return `board-section-${elementKey}`;
+    },
+
+    // Determine if a board element should be visible
+    isBoardElementVisible(elementKey: string): boolean {
+      switch (elementKey) {
+      case 'board':
+        return this.showBoard;
+      case 'actions':
+        return this.showActions;
+      case 'cards':
+        return this.showCards;
+      case 'colonies':
+        return this.showColonies;
+      case 'players_overview':
+        return this.showPlayersOverview;
+      default:
+        return true;
+      }
+    },
+
   },
   destroyed() {
     window.removeEventListener('keydown', this.navigatePage);
@@ -601,4 +705,15 @@ export default Vue.extend({
 .board-scale-controls { display:flex; align-items:center; gap:8px; }
 .board-scale-value { font-weight:600; }
 .btn-small { padding:4px 8px; font-size:14px; }
+
+/* Sticky player overview */
+.sticky-player-overview {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 </style>

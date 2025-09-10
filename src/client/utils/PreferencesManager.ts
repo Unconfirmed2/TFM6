@@ -23,6 +23,19 @@ export type Preferences = {
   header_sticky: boolean,
   tile_view: string,
   last_magnified_card: string,
+
+  // Board element visibility toggles
+  show_board: boolean,
+  show_actions: boolean,
+  show_cards: boolean,
+  show_colonies: boolean,
+  show_players_overview: boolean,
+
+  // Player overview sticky toggle
+  player_overview_sticky: boolean,
+
+  // Board element arrangement order
+  board_element_order: string,
 }
 
 export type Preference = keyof Preferences;
@@ -49,9 +62,21 @@ const defaults: Preferences = {
   hide_animated_sidebar: false,
 
   symbol_overlay: false,
-
   experimental_ui: false,
   debug_view: false,
+
+  // Board element visibility toggles - default to all visible
+  show_board: true,
+  show_actions: true,
+  show_cards: true,
+  show_colonies: true,
+  show_players_overview: true,
+
+  // Player overview sticky toggle - default to not sticky
+  player_overview_sticky: false,
+
+  // Board element arrangement order - default order
+  board_element_order: 'board,actions,cards,colonies,players_overview',
 
   header_sticky: false,
   tile_view: 'show',
@@ -71,7 +96,7 @@ export class PreferencesManager {
   }
 
   private constructor() {
-    this._values = {...defaults};
+    this._values = { ...defaults };
     for (const key of Object.keys(defaults) as Array<Preference>) {
       const value = this.localStorageSupported() ? localStorage.getItem(key) : undefined;
       if (value) this._set(key, value);
@@ -79,10 +104,10 @@ export class PreferencesManager {
   }
 
   private _set(key: Preference, val: string | boolean) {
-    if (key === 'lang' || key === 'tile_view' || key === 'last_magnified_card') {
+    if (key === 'lang' || key === 'tile_view' || key === 'last_magnified_card' || key === 'board_element_order') {
       (this._values as any)[key] = String(val);
     } else {
-      (this._values as any)[key] = typeof(val) === 'boolean' ? val : (val === '1');
+      (this._values as any)[key] = typeof val === 'boolean' ? val : (val === '1');
     }
   }
 
@@ -97,7 +122,7 @@ export class PreferencesManager {
     if (setOnChange && this._values[name] === val) return;
     this._set(name, val);
     if (this.localStorageSupported()) {
-      if (name === 'lang' || name === 'tile_view' || name === 'last_magnified_card') {
+      if (name === 'lang' || name === 'tile_view' || name === 'last_magnified_card' || name === 'board_element_order') {
         localStorage.setItem(name, String(val));
       } else {
         localStorage.setItem(name, val ? '1' : '0');
