@@ -1,5 +1,5 @@
 <template>
-  <div class="player-info-top-container">
+  <div :class="['player-info-top-container', { 'player-info-top-container--sticky': isHeaderSticky }]">
     <PlayerInfoTopDuplicate
       v-for="(p, idx) in getPlayersInOrder()"
       :key="p.color + '-' + idx"
@@ -17,6 +17,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import PlayerInfoTopDuplicate from '@/client/components/overview/PlayerInfoTopDuplicate.vue';
+import { getPreferences } from '@/client/utils/PreferencesManager';
 import {getPlayersInOrder, isFirstForGen, playerIndex} from '@/client/components/overview/playerHelpers';
 import {PlayerViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
 import {ActionLabel} from '@/client/components/overview/ActionLabel';
@@ -40,6 +41,13 @@ export default Vue.extend({
     },
     thisPlayer(): PublicPlayerModel {
       return this.playerView.thisPlayer;
+    },
+    isHeaderSticky(): boolean {
+      try {
+        return !!getPreferences().header_sticky;
+      } catch (e) {
+        return false;
+      }
     },
   },
   methods: {
@@ -107,6 +115,18 @@ export default Vue.extend({
   gap: 12px;
   margin-bottom: 12px;
 
+}
+
+.player-info-top-container.player-info-top-container--sticky {
+  display: inline-flex;
+  background-color: black;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  position: sticky;
+  top: -13px;
+  z-index: 20;
 }
 
 /* Make each player-info card a vertical column so tags sit below status */

@@ -50,6 +50,12 @@
       </div>
       <div class="preferences_panel_item">
         <label class="form-switch">
+          <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.header_sticky" data-test="header_sticky">
+          <i class="form-icon"></i> <span v-i18n>Sticky Top (req. refresh)</span>
+        </label>
+      </div>
+      <div class="preferences_panel_item">
+        <label class="form-switch">
           <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.hide_tile_confirmation" data-test="hide_tile_confirmation">
           <i class="form-icon"></i> <span v-i18n>Hide tile confirmation</span>
         </label>
@@ -137,9 +143,18 @@ export default (Vue as WithRefs<Refs>).extend({
       }
     },
     updatePreferences(): void {
+      // Detect if header_sticky changes so we can reload the page to apply
+      // the sticky header class immediately.
+      const before = (this.preferencesManager.values() as any).header_sticky;
       for (const k of Object.keys(this.preferencesManager.values()) as Array<Preference>) {
         const val = this.prefs[k];
         this.preferencesManager.set(k, val, /* setOnChange */ true);
+      }
+      const after = (this.preferencesManager.values() as any).header_sticky;
+      if (before !== after) {
+        // Force a reload so sticky header CSS is applied consistently.
+        // Use setTimeout to allow the preferences save to flush before reload.
+        setTimeout(() => { window.location.reload(); }, 50);
       }
     },
     syncPreferences(): void {

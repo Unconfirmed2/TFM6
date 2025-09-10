@@ -16,6 +16,7 @@ export type Preferences = {
   hide_tile_confirmation: boolean,
   hide_discount_on_cards: boolean,
   hide_animated_sidebar: boolean,
+  header_sticky: boolean,
   debug_view: boolean,
   symbol_overlay: boolean,
   experimental_ui: boolean,
@@ -44,6 +45,9 @@ const defaults: Preferences = {
   hide_tile_confirmation: false,
   hide_discount_on_cards: false,
   hide_animated_sidebar: false,
+
+  // Make the top player overview sticky by default? false to match previous behaviour
+  header_sticky: false,
 
   symbol_overlay: false,
 
