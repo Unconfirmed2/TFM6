@@ -20,6 +20,9 @@ export type Preferences = {
   symbol_overlay: boolean,
   experimental_ui: boolean,
   lang: string,
+  header_sticky: boolean,
+  tile_view: string,
+  last_magnified_card: string,
 }
 
 export type Preference = keyof Preferences;
@@ -49,6 +52,10 @@ const defaults: Preferences = {
 
   experimental_ui: false,
   debug_view: false,
+  
+  header_sticky: false,
+  tile_view: 'show',
+  last_magnified_card: '',
 };
 
 export class PreferencesManager {
@@ -72,10 +79,10 @@ export class PreferencesManager {
   }
 
   private _set(key: Preference, val: string | boolean) {
-    if (key === 'lang') {
-      this._values.lang = String(val);
+    if (key === 'lang' || key === 'tile_view' || key === 'last_magnified_card') {
+      (this._values as any)[key] = String(val);
     } else {
-      this._values[key] = typeof(val) === 'boolean' ? val : (val === '1');
+      (this._values as any)[key] = typeof(val) === 'boolean' ? val : (val === '1');
     }
   }
 
@@ -90,8 +97,8 @@ export class PreferencesManager {
     if (setOnChange && this._values[name] === val) return;
     this._set(name, val);
     if (this.localStorageSupported()) {
-      if (name === 'lang') {
-        localStorage.setItem(name, this._values.lang);
+      if (name === 'lang' || name === 'tile_view' || name === 'last_magnified_card') {
+        localStorage.setItem(name, String(val));
       } else {
         localStorage.setItem(name, val ? '1' : '0');
       }

@@ -147,8 +147,8 @@ export default (Vue as WithRefs<Refs>).extend({
       if (!target) return;
 
       for (const k of Object.keys(this.prefs) as Array<Preference>) {
-        if (k === 'lang') continue;
-        this.setBoolPreferencesCSS(target, this.prefs[k], k);
+        if (k === 'lang' || k === 'tile_view' || k === 'last_magnified_card') continue;
+        this.setBoolPreferencesCSS(target, this.prefs[k] as boolean, k);
       }
 
       if (!target.classList.contains('language-' + this.prefs.lang)) {

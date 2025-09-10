@@ -282,6 +282,7 @@ export interface PlayerHomeModel {
   boardScale: number;
   baseBoardWidth: number;
   baseBoardHeight: number;
+  headerSticky: boolean;
 }
 
 class TerraformedAlertDialog {
@@ -297,10 +298,11 @@ export default Vue.extend({
       showActiveCards: !preferences.hide_active_cards,
       showAutomatedCards: !preferences.hide_automated_cards,
       showEventCards: !preferences.hide_event_cards,
-      tileView: 'show',
+      tileView: preferences.tile_view as TileView,
       boardScale: 1,
       baseBoardWidth: 0,
       baseBoardHeight: 0,
+      headerSticky: preferences.header_sticky,
     };
   },
   watch: {
@@ -315,6 +317,9 @@ export default Vue.extend({
     },
     showEventCards: function toggle_event_cards() {
       PreferencesManager.INSTANCE.set('hide_event_cards', !this.showEventCards);
+    },
+    tileView: function update_tile_view() {
+      PreferencesManager.INSTANCE.set('tile_view', this.tileView);
     },
   },
   props: {
@@ -436,6 +441,10 @@ export default Vue.extend({
     },
     cycleTileView(): void {
       this.tileView = nextTileView(this.tileView);
+    },
+    toggleHeaderSticky(): void {
+      this.headerSticky = !this.headerSticky;
+      PreferencesManager.INSTANCE.set('header_sticky', this.headerSticky);
     },
     isVisible(type: string): boolean {
       switch (type) {
