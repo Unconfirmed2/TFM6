@@ -52,7 +52,7 @@ const defaults: Preferences = {
 
   experimental_ui: false,
   debug_view: false,
-  
+
   header_sticky: false,
   tile_view: 'show',
   last_magnified_card: '',
