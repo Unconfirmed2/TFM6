@@ -63,4 +63,24 @@ describe('PreferencesManager', () => {
 
     expect(values.lang).eq('fr');
   });
+
+  it('new string preferences work correctly', () => {
+    const values = instance.values();
+
+    // Test defaults
+    expect(values.header_sticky).eq(false);
+    expect(values.tile_view).eq('show');
+    expect(values.last_magnified_card).eq('');
+
+    // Test setting string values
+    instance.set('tile_view', 'hide');
+    expect(values.tile_view).eq('hide');
+
+    instance.set('last_magnified_card', 'test-card');
+    expect(values.last_magnified_card).eq('test-card');
+
+    // Test setting boolean values
+    instance.set('header_sticky', true);
+    expect(values.header_sticky).eq(true);
+  });
 });

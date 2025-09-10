@@ -1,5 +1,5 @@
 <template>
-  <div class="card-container filterDiv hover-hide-res" :class="cardClasses">
+  <div class="card-container filterDiv hover-hide-res" :class="[cardClasses, {magnified: isGloballyMagnified}]">
       <div class="card-content-wrapper" v-i18n @mouseover="hovering = true" @mouseleave="hovering = false">
           <div v-if="!isStandardProject" class="card-cost-and-tags">
               <CardCost :amount="cost" :newCost="reducedCost" />
@@ -17,6 +17,12 @@
       <slot/>
   </div>
 </template>
+
+<style scoped>
+/* Magnify card on hover when preference is enabled. Scale to 200% (100% increase) centered from the middle. */
+.card-container { transition: transform 150ms ease; transform-origin: center center; }
+.card-container.magnified { transform: scale(2); z-index: 50; position: relative; }
+</style>
 
 <script lang="ts">
 
@@ -187,6 +193,11 @@ export default Vue.extend({
     playerCubeClass(): string {
       return `board-cube board-cube--${this.cubeColor}`;
     },
+    isGloballyMagnified(): boolean {
+      return getPreferences().magnify_cards && this.hovering;
+    },
+  },
+  methods: {
   },
 });
 

@@ -150,10 +150,12 @@ export default Vue.extend({
     updatePlayerView(playerView: PlayerViewModel | undefined) {
       if (this.suspend === false) {
         const root = vueRoot(this);
-        root.screen = 'empty';
+        
+        // Only update the player view without changing screens to prevent refresh
         root.playerView = playerView;
         root.playerkey++;
-        root.screen = 'player-home';
+        
+        // Only change screen for special cases like game end
         if (this.playerView.game.phase === 'end' && window.location.pathname !== paths.THE_END) {
           window.location = window.location as any as (string & Location); // eslint-disable-line no-self-assign
         }

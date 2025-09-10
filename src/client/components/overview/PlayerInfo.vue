@@ -148,3 +148,17 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style scoped>
+/* Ensure the show/hide button and icons are above overlapping layers on mobile */
+.played-cards-button {
+  position: relative;
+  z-index: 30;
+  touch-action: manipulation; /* improve mobile tap handling */
+}
+.played-cards-icon.hiding-card-button {
+  position: relative;
+  z-index: 30;
+  touch-action: manipulation;
+}
+</style>
