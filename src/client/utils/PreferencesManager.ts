@@ -21,6 +21,7 @@ export type Preferences = {
   symbol_overlay: boolean,
   experimental_ui: boolean,
   lang: string,
+  section_order: number[],
 }
 
 export type Preference = keyof Preferences;
@@ -53,6 +54,7 @@ const defaults: Preferences = {
 
   experimental_ui: false,
   debug_view: false,
+  section_order: [1, 2, 3, 4, 5], // Board, Actions, Cards, Colonies, Log
 };
 
 export class PreferencesManager {
@@ -75,9 +77,11 @@ export class PreferencesManager {
     }
   }
 
-  private _set(key: Preference, val: string | boolean) {
+  private _set(key: Preference, val: string | boolean | number[]) {
     if (key === 'lang') {
       this._values.lang = String(val);
+    } else if (key === 'section_order') {
+      this._values.section_order = Array.isArray(val) ? val : JSON.parse(String(val));
     } else {
       this._values[key] = typeof(val) === 'boolean' ? val : (val === '1');
     }
@@ -89,13 +93,15 @@ export class PreferencesManager {
     return this._values;
   }
 
-  set(name: Preference, val: string | boolean, setOnChange = false): void {
+  set(name: Preference, val: string | boolean | number[], setOnChange = false): void {
     // Don't set values if nothing has changed.
     if (setOnChange && this._values[name] === val) return;
     this._set(name, val);
     if (this.localStorageSupported()) {
       if (name === 'lang') {
         localStorage.setItem(name, this._values.lang);
+      } else if (name === 'section_order') {
+        localStorage.setItem(name, JSON.stringify(this._values.section_order));
       } else {
         localStorage.setItem(name, val ? '1' : '0');
       }

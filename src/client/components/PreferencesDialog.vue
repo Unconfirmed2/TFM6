@@ -154,7 +154,9 @@ export default (Vue as WithRefs<Refs>).extend({
       if (before !== after) {
         // Force a reload so sticky header CSS is applied consistently.
         // Use setTimeout to allow the preferences save to flush before reload.
-        setTimeout(() => { window.location.reload(); }, 50);
+        setTimeout(() => {
+          window.location.reload();
+        }, 50);
       }
     },
     syncPreferences(): void {
@@ -163,7 +165,8 @@ export default (Vue as WithRefs<Refs>).extend({
 
       for (const k of Object.keys(this.prefs) as Array<Preference>) {
         if (k === 'lang') continue;
-        this.setBoolPreferencesCSS(target, this.prefs[k], k);
+        if (k === 'section_order') continue;
+        this.setBoolPreferencesCSS(target, this.prefs[k] as boolean, k);
       }
 
       if (!target.classList.contains('language-' + this.prefs.lang)) {

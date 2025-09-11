@@ -258,6 +258,34 @@
     margin-left: 5px;
 }
 
+.sidebar_icon.sidebar_icon--log {
+    background-image: url(./assets/sidebar/preferences_log.png);
+    background-size: 36px 36px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    margin-top: 12px;
+}
+
+/* Drag and drop styling */
+.sidebar_item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    transition: all 0.2s ease;
+}
+
+.sidebar_item.drag-over {
+    border: 2px solid #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+.draggable-section {
+    cursor: grab;
+}
+
+.draggable-section:active {
+    cursor: grabbing;
+}
+
 .preferences_panel_actions {
     text-align: center;
 }

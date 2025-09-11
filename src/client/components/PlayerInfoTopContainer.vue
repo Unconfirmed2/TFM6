@@ -17,7 +17,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import PlayerInfoTopDuplicate from '@/client/components/overview/PlayerInfoTopDuplicate.vue';
-import { getPreferences } from '@/client/utils/PreferencesManager';
+import {getPreferences} from '@/client/utils/PreferencesManager';
 import {getPlayersInOrder, isFirstForGen, playerIndex} from '@/client/components/overview/playerHelpers';
 import {PlayerViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
 import {ActionLabel} from '@/client/components/overview/ActionLabel';

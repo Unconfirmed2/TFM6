@@ -18,26 +18,25 @@
     <div :class="getPlayerColorCubeClass()+' player_bg_color_' + player_color"></div>
   </div>
 
-  <a href="#board" :title="$t('Jump to board')">
-      <div class="sidebar_item sidebar_item_shortcut">
-          <i class="sidebar_icon sidebar_icon--board"></i>
+  <!-- Dynamic sidebar icons based on section order -->
+  <template v-for="sectionId in sectionOrder" :key="sectionId">
+    <a v-if="shouldShowSection(sectionId)"
+       :href="getSectionHref(sectionId)"
+       :title="getSectionTitle(sectionId)">
+      <div class="sidebar_item sidebar_item_shortcut draggable-section"
+           :class="{ 'goto-cards': sectionId === 3 }"
+           draggable="true"
+           @dragstart="onSectionDragStart($event, sectionId)"
+           @dragend="onSectionDragEnd"
+           @dragover="onSectionDragOver($event, sectionId)"
+           @dragleave="onSectionDragLeave"
+           @drop="onSectionDrop($event, sectionId)">
+        <i class="sidebar_icon" :class="getSectionIconClass(sectionId)">
+          <slot v-if="sectionId === 3"></slot>
+        </i>
       </div>
-  </a>
-  <a href="#actions" :title="$t('Jump to actions')">
-      <div class="sidebar_item sidebar_item_shortcut">
-          <i class="sidebar_icon sidebar_icon--actions"></i>
-      </div>
-  </a>
-  <a href="#cards" :title="$t('Jump to cards')">
-      <div class="sidebar_item goto-cards sidebar_item_shortcut">
-          <i class="sidebar_icon sidebar_icon--cards"><slot></slot></i>
-      </div>
-  </a>
-  <a v-if="coloniesCount > 0" href="#colonies" :title="$t('Jump to colonies')">
-      <div class="sidebar_item sidebar_item_shortcut">
-          <i class="sidebar_icon sidebar_icon--colonies"></i>
-      </div>
-  </a>
+    </a>
+  </template>
 
   <language-icon></language-icon>
 
@@ -82,6 +81,7 @@ import {GlobalParameter} from '@/common/GlobalParameter';
 import {MoonModel} from '@/common/models/MoonModel';
 import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
 import LanguageIcon from '@/client/components/LanguageIcon.vue';
+import {SectionOrderStorage} from '@/client/utils/SectionOrderStorage';
 
 export default Vue.extend({
   name: 'sidebar',
@@ -125,6 +125,10 @@ export default Vue.extend({
     lastSoloGeneration: {
       type: Number,
     },
+    sectionOrder: {
+      type: Array as () => number[],
+      default: () => [1, 2, 3, 4, 5],
+    },
   },
   components: {
     'game-setup-detail': GameSetupDetail,
@@ -139,6 +143,8 @@ export default Vue.extend({
         'gamesetup_detail_open': false,
       },
       'globalParameter': GlobalParameter,
+      'draggedSection': null as number | null,
+      'dragOverSection': null as number | null,
     };
   },
   methods: {
@@ -171,6 +177,67 @@ export default Vue.extend({
       default:
         return this.turmoil.ruling;
       }
+    },
+    onSectionDragStart(event: DragEvent, sectionId: number): void {
+      this.draggedSection = sectionId;
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+      }
+      (event.target as HTMLElement).classList.add('dragging');
+    },
+    onSectionDragEnd(event: DragEvent): void {
+      this.draggedSection = null;
+      this.dragOverSection = null;
+      (event.target as HTMLElement).classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach((el) => el.classList.remove('drag-over'));
+    },
+    onSectionDragOver(event: DragEvent, targetSectionId: number): void {
+      if (this.draggedSection === null || this.draggedSection === targetSectionId) return;
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+      this.dragOverSection = targetSectionId;
+      (event.currentTarget as HTMLElement).classList.add('drag-over');
+    },
+    onSectionDragLeave(event: DragEvent): void {
+      (event.currentTarget as HTMLElement).classList.remove('drag-over');
+    },
+    onSectionDrop(event: DragEvent, targetSectionId: number): void {
+      event.preventDefault();
+      if (this.draggedSection === null || this.draggedSection === targetSectionId) return;
+
+      // Emit event to parent component to handle section reordering
+      this.$emit('section-order-changed', {
+        draggedSection: this.draggedSection,
+        targetSection: targetSectionId,
+      });
+
+      // Clean up
+      (event.currentTarget as HTMLElement).classList.remove('drag-over');
+      this.draggedSection = null;
+      this.dragOverSection = null;
+    },
+    getSectionIconClass(sectionId: number): string {
+      switch (sectionId) {
+        case 1: return 'sidebar_icon--board';
+        case 2: return 'sidebar_icon--actions';
+        case 3: return 'sidebar_icon--cards';
+        case 4: return 'sidebar_icon--colonies';
+        case 5: return 'sidebar_icon--log';
+        default: return 'sidebar_icon--unknown';
+      }
+    },
+    getSectionHref(sectionId: number): string {
+      return '#' + SectionOrderStorage.getSectionName(sectionId);
+    },
+    getSectionTitle(sectionId: number): string {
+      return this.$t(SectionOrderStorage.getSectionTitle(sectionId));
+    },
+    shouldShowSection(sectionId: number): boolean {
+      // Colonies only show if colonies exist
+      if (sectionId === 4) return this.coloniesCount > 0;
+      return true;
     },
   },
   computed: {
