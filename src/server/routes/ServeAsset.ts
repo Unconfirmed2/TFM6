@@ -172,7 +172,7 @@ export class ServeAsset extends Handler {
       return {file: 'assets/favicon.ico'};
 
     default:
-      if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg') || urlPath.endsWith('.json')) {
+      if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg') || urlPath.endsWith('.svg') || urlPath.endsWith('.json')) {
         const assetsRoot = path.resolve('./assets');
         const resolvedFile = path.resolve(path.normalize(urlPath));
 

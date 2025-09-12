@@ -5,7 +5,8 @@ export enum SectionType {
   ACTIONS = 2,
   CARDS = 3,
   COLONIES = 4,
-  LOG = 5
+  LOG = 5,
+  CHAT = 6
 }
 
 export class SectionOrderStorage {
@@ -13,17 +14,21 @@ export class SectionOrderStorage {
     try {
       const order = typeof localStorage === 'undefined' ? null : localStorage.getItem(`${STORAGE_PREFIX}${playerId}`);
       if (order === null) {
-        return [1, 2, 3, 4, 5]; // Default order: Board, Actions, Cards, Colonies, Log
+        return [1, 2, 3, 4, 5, 6]; // Default order: Board, Actions, Cards, Colonies, Log, Chat
       }
       const parsed = JSON.parse(order);
-      // Always return 5 sections, ignoring any 6th section (chat) from old data
       if (Array.isArray(parsed)) {
-        return parsed.slice(0, 5).filter(x => x >= 1 && x <= 5);
+        let result = parsed.filter(x => x >= 1 && x <= 6);
+        // If old data only has 5 sections, add chat (6) at the end
+        if (result.length === 5 && !result.includes(6)) {
+          result.push(6);
+        }
+        return result;
       }
-      return [1, 2, 3, 4, 5];
+      return [1, 2, 3, 4, 5, 6];
     } catch (err) {
       console.warn('unable to pull section order from local storage', err);
-      return [1, 2, 3, 4, 5];
+      return [1, 2, 3, 4, 5, 6];
     }
   }
 
@@ -42,6 +47,7 @@ export class SectionOrderStorage {
     case SectionType.CARDS: return 'cards';
     case SectionType.COLONIES: return 'colonies';
     case SectionType.LOG: return 'log';
+    case SectionType.CHAT: return 'chat';
     default: return 'unknown';
     }
   }
@@ -53,6 +59,7 @@ export class SectionOrderStorage {
     case SectionType.CARDS: return 'Jump to cards';
     case SectionType.COLONIES: return 'Jump to colonies';
     case SectionType.LOG: return 'Jump to log';
+    case SectionType.CHAT: return 'Show/Hide chat';
     default: return 'Unknown section';
     }
   }

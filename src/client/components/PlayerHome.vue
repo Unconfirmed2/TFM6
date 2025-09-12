@@ -24,8 +24,9 @@
       :playerNumber = "playerView.players.length"
       :lastSoloGeneration = "game.lastSoloGeneration"
       :sectionOrder="sectionOrder"
+      :chatVisible="chatVisible"
       @section-order-changed="onSectionOrderChanged"
-      @chat-footer-toggle="onChatFooterToggle">
+      @toggle-chat="chatVisible = !chatVisible">
         <div class="deck-size">{{ game.deckSize }}</div>
     </sidebar>
 
@@ -149,6 +150,16 @@
             :step="game.step"></log-panel>
         </div>
 
+        <!-- CHAT SECTION -->
+        <div v-else-if="sectionId === 6" class="player_home_block">
+          <a name="chat" class="player_home_anchor"></a>
+            <chat-component 
+              v-show="chatVisible"
+              :playerView="playerView"
+              :players="playerView.players">
+            </chat-component>
+        </div>
+
 
       </player-home-section-container>
     </div>
@@ -257,13 +268,6 @@
     <purge-warning :expectedPurgeTimeMs="playerView.game.expectedPurgeTimeMs"></purge-warning>
   </div>
 
-  <!-- Sticky Chat Footer -->
-  <chat-component 
-    v-if="chatFooterOpen" 
-    class="chat-sticky-footer"
-    :playerView="playerView"
-    :players="playerView.players">
-  </chat-component>
 </template>
 
 <script lang="ts">
@@ -309,7 +313,7 @@ export interface PlayerHomeModel {
   baseBoardWidth: number;
   baseBoardHeight: number;
   sectionOrder: number[];
-  chatFooterOpen: boolean;
+  chatVisible: boolean;
 }
 
 class TerraformedAlertDialog {
@@ -326,11 +330,11 @@ export default Vue.extend({
       showAutomatedCards: !preferences.hide_automated_cards,
       showEventCards: !preferences.hide_event_cards,
       tileView: 'show',
-      boardScale: 1,
+      boardScale: preferences.board_scale,
       baseBoardWidth: 0,
       baseBoardHeight: 0,
-      sectionOrder: [1, 2, 3, 4, 5], // Default order: Board, Actions, Cards, Colonies, Log
-      chatFooterOpen: false,
+      sectionOrder: [1, 2, 3, 4, 5, 6], // Default order: Board, Actions, Cards, Colonies, Log, Chat
+      chatVisible: preferences.chat_visible,
     };
   },
   watch: {
@@ -345,6 +349,12 @@ export default Vue.extend({
     },
     showEventCards: function toggle_event_cards() {
       PreferencesManager.INSTANCE.set('hide_event_cards', !this.showEventCards);
+    },
+    chatVisible: function toggle_chat() {
+      PreferencesManager.INSTANCE.set('chat_visible', this.chatVisible);
+    },
+    boardScale: function save_board_scale() {
+      PreferencesManager.INSTANCE.set('board_scale', this.boardScale);
     },
   },
   props: {
@@ -562,6 +572,7 @@ export default Vue.extend({
       case 3: return 'cards';
       case 4: return 'colonies';
       case 5: return 'log';
+      case 6: return 'chat';
       default: return 'unknown';
       }
     },
@@ -577,10 +588,10 @@ export default Vue.extend({
       this.sectionOrder = currentOrder;
       SectionOrderStorage.updateSectionOrder(this.playerView.id, currentOrder);
     },
-    onChatFooterToggle(isOpen: boolean) {
-      this.chatFooterOpen = isOpen;
-    },
 
+  },
+  created() {
+    // nothing here yet
   },
   destroyed() {
     window.removeEventListener('keydown', this.navigatePage);
@@ -644,6 +655,8 @@ export default Vue.extend({
   /* Place the board below UI controls (non-negative z-index is safe). */
   z-index: 0;
 }
+.player_home_block { margin-bottom: 12px; }
+#player-home { padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 312px); }
 .player_home_block.player_home_block--actions {
   /* Ensure the actions area (where buttons live) sits above the board */
   position: relative;

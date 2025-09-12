@@ -9,6 +9,7 @@ export type Preferences = {
   show_award_details: boolean,
   hide_top_bar: boolean,
   small_cards: boolean,
+  small_colonies: boolean,
   remove_background: boolean,
   hide_active_cards: boolean,
   hide_automated_cards: boolean,
@@ -22,6 +23,11 @@ export type Preferences = {
   experimental_ui: boolean,
   lang: string,
   section_order: number[],
+  
+  // UI state that should persist across component remounting
+  chat_visible: boolean,
+  board_scale: number,
+  other_player_group_modes: {[key: string]: string},
 }
 
 export type Preference = keyof Preferences;
@@ -39,6 +45,7 @@ const defaults: Preferences = {
   show_award_details: true,
   hide_top_bar: false,
   small_cards: false,
+  small_colonies: false,
   remove_background: false,
   hide_active_cards: false,
   hide_automated_cards: false,
@@ -55,6 +62,20 @@ const defaults: Preferences = {
   experimental_ui: false,
   debug_view: false,
   section_order: [1, 2, 3, 4, 5], // Board, Actions, Cards, Colonies, Log
+  
+  // UI state that should persist across component remounting
+  chat_visible: true,
+  board_scale: 1.0,
+  other_player_group_modes: {
+    corporation: 'grid',
+    prelude: 'grid',
+    ceo: 'grid',
+    active_with_actions: 'grid',
+    active_without_actions: 'grid',
+    automated: 'stacked',
+    event: 'hidden',
+    self_replicating: 'stacked',
+  },
 };
 
 export class PreferencesManager {
@@ -77,13 +98,19 @@ export class PreferencesManager {
     }
   }
 
-  private _set(key: Preference, val: string | boolean | number[]) {
+  private _set(key: Preference, val: string | boolean | number[] | number | {[key: string]: string}) {
     if (key === 'lang') {
       this._values.lang = String(val);
     } else if (key === 'section_order') {
       this._values.section_order = Array.isArray(val) ? val : JSON.parse(String(val));
+    } else if (key === 'board_scale') {
+      this._values.board_scale = typeof(val) === 'number' ? val : parseFloat(String(val));
+    } else if (key === 'other_player_group_modes') {
+      this._values.other_player_group_modes = typeof(val) === 'object' ? val as {[key: string]: string} : JSON.parse(String(val));
+    } else if (key === 'chat_visible') {
+      this._values.chat_visible = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
     } else {
-      this._values[key] = typeof(val) === 'boolean' ? val : (val === '1');
+      (this._values as any)[key] = typeof(val) === 'boolean' ? val : (val === '1');
     }
   }
 
@@ -93,7 +120,7 @@ export class PreferencesManager {
     return this._values;
   }
 
-  set(name: Preference, val: string | boolean | number[], setOnChange = false): void {
+  set(name: Preference, val: string | boolean | number[] | number | {[key: string]: string}, setOnChange = false): void {
     // Don't set values if nothing has changed.
     if (setOnChange && this._values[name] === val) return;
     this._set(name, val);
@@ -102,6 +129,12 @@ export class PreferencesManager {
         localStorage.setItem(name, this._values.lang);
       } else if (name === 'section_order') {
         localStorage.setItem(name, JSON.stringify(this._values.section_order));
+      } else if (name === 'board_scale') {
+        localStorage.setItem(name, String(this._values.board_scale));
+      } else if (name === 'other_player_group_modes') {
+        localStorage.setItem(name, JSON.stringify(this._values.other_player_group_modes));
+      } else if (name === 'chat_visible') {
+        localStorage.setItem(name, this._values.chat_visible ? '1' : '0');
       } else {
         localStorage.setItem(name, val ? '1' : '0');
       }

@@ -98,6 +98,13 @@
     box-shadow: 0 0 2px 1px black;
 }
 
+/* Wrapper around card elements that controls actual layout dimensions.
+   Scaling via this wrapper will change layout (width/height) proportionally. */
+.card-zoom-wrapper {
+    display: inline-block;
+    /* Ensure wrapper shrinks to the contained card by default */
+}
+
 input[type="checkbox"] + .filterDiv.card-container,
 input[type="radio"] + .filterDiv.card-container {
     margin-top: 22px;
@@ -187,6 +194,22 @@ input[type="radio"]:checked + .filterDiv::after {
     background-repeat: no-repeat;
     border: none;
     padding-top: 1px;
+}
+
+/* When user enables small colony cards preference, scale colony visuals down */
+
+
+/* Small colonies preference targets colony wrappers specifically */
+#ts-preferences-target.preferences_small_colonies {
+    .card-zoom-wrapper {
+        transform-origin: top left;
+        transform: scale(0.72);
+    }
+}
+
+/* If magnify on hover is enabled, slightly increase transform on hover for wrapped cards */
+#ts-preferences-target.preferences_magnify_cards .card-zoom-wrapper:hover {
+    transform: scale(0.78);
 }
 
 .price {
@@ -2999,4 +3022,80 @@ input[type="radio"]:checked + .filterDiv::after {
     display: inline-block;
     vertical-align: top
   }
+}
+
+/* Expand button shown on hover */
+.card-container {
+    position: relative;
+
+    .card-expand-btn {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 8px;
+        display: none;
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        padding: 6px;
+        width: 28px;
+        height: 28px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 2;
+        user-select: none;
+    }
+
+    &:hover {
+        .card-expand-btn { display: flex; }
+    }
+}
+
+/* Overlay to show the zoomed card */
+.card-zoom-overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.card-zoom-wrapper {
+    position: relative;
+    transform-origin: center center;
+    transition: transform 200ms ease, opacity 200ms ease;
+    will-change: transform;
+}
+
+.card-zoomed {
+    transform: scale(1.5);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* Ensure the inner card visuals are visible above overlay background */
+.card-zoom-wrapper .filterDiv {
+    z-index: 2;
+}
+
+/* Ensure the fullscreen zoom overlay is not affected by preference-based transforms
+   (e.g. small_colonies). The overlay should show the card at the intended zoomed size. */
+.card-zoom-overlay .card-zoom-wrapper {
+    transform: none !important;
+}
+.card-zoom-overlay .card-zoom-wrapper.card-zoomed {
+    transform: scale(1.5) !important;
+}
+
+/* Hide/disable expand button when inside the overlay */
+.card-zoom-overlay .card-expand-btn {
+    display: none !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
 }

@@ -1,7 +1,8 @@
 <template>
     <!-- <div :class="recedeIfInactive"> -->
     <!-- Show the background, tooltip, and other setup -->
-    <div class="filterDiv colony-card colonies tooltip tooltip-bottom" :class="backgroundClass" :data-tooltip="tooltip" v-i18n>
+    <div class="card-zoom-wrapper">
+      <div class="filterDiv colony-card colonies tooltip tooltip-bottom" :class="backgroundClass" :data-tooltip="tooltip" v-i18n>
 
     <!-- Show colony ship if somebody is visiting -->
     <div v-if="colony.visitor !== undefined" class="colony-spaceship">
@@ -111,6 +112,7 @@
     <colony-row :metadata="metadata" :colony="colony"></colony-row>
     <!-- show the numbers underneath the colony row -->
     <colony-trade-row :metadata="metadata"></colony-trade-row>
+    </div>
   </div>
 <!-- </div> -->
 </div>

@@ -76,10 +76,26 @@
     margin-top: 10px;
   }
 
+  /* Global parameters popup specific tile centering */
+  .global-params-popup {
+    .temperature-tile,
+    .oxygen-tile,
+    .ocean-tile,
+    .venus-tile,
+    .moon-tile {
+        margin: 4px auto;
+    }
+  }
+
   .global_params_value {
     text-align: center;
     font-family: "Prototype";
-    margin-top: -5px;
+    margin-top: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
   }
 
   .checkmark{
@@ -87,6 +103,7 @@
     filter: invert(92%) sepia(11%) saturate(1093%) hue-rotate(46deg) brightness(98%) contrast(85%);
     width: 18px;
     height: 18px;
+    margin: auto;
   }
 
   .moon-tile {
@@ -103,6 +120,10 @@
     text-align: center;
     font-family: "Prototype";
     font-size: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    
     .habitat {
       background-color: #0e7a99;
       padding: 2px;
@@ -224,6 +245,7 @@
 .sidebar_icon.sidebar_icon--cards {
     background-image: url(./assets/sidebar/preferences_cards.png);
     position: relative;
+    margin-top: -2px;
 }
 
 .sidebar_icon.sidebar_icon--cards::after {
@@ -325,7 +347,7 @@
 }
 
 .sidebar_icon.sidebar_icon--chat {
-    background-image: url(.assets/chat-icon.svg);
+    background-image: url(./assets/sidebar/preferences_chat.png);
     background-size: 36px 36px;
     background-position: center center;
     background-repeat: no-repeat;
@@ -344,29 +366,23 @@
     padding: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     z-index: 1000;
-    width: 200px;
+    width: fit-content;
+    text-align: center;
+    
+    /* Ensure each parameter component is properly centered */
+    & > * {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
 }
 
-/* Chat Toggle Icon */
-.sidebar_icon.sidebar_icon--chat-toggle {
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMwIDEwSDZDNS40IDEwIDUgMTAuNCA1IDExVjIxQzUgMjEuNiA1LjQgMjIgNiAyMkgxMEwxNCAyNkwxOCAyMkgzMEMzMC42IDIyIDMxIDIxLjYgMzEgMjFWMTFDMzEgMTAuNCAzMC42IDEwIDMwIDEwWiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxNiIgcj0iMS5IZmlsbD0iI2ZmZiIvPgo8Y2lyY2xlIGN4PSIxOCIgY3k9IjE2IiByPSIxLjUiIGZpbGw9IiNmZmYiLz4KPGNpcmNsZSBjeD0iMjQiIGN5PSIxNiIgcj0iMS41IiBmaWxsPSIjZmZmIi8+Cjwvc3ZnPg==);
-    background-size: 36px 36px;
-    background-position: center center;
-    background-repeat: no-repeat;
-    margin-top: 12px;
-    position: relative;
-}
-
-
-/* Sticky Chat Footer */
-.chat-sticky-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    border-top: 2px solid #555;
-}
 
 /* Drag and drop styling */
 .sidebar_item.dragging {
@@ -416,30 +432,30 @@
 
 /* Visual effects of changing settings */
 
-/* Reduce all cards size */
-.preferences_small_cards .filterDiv,
-.preferences_small_cards .filterDiv:hover {
+/* Reduce all (non-colony) cards size */
+.preferences_small_cards .filterDiv:not(.colony-card),
+.preferences_small_cards .filterDiv:not(.colony-card):hover {
     transform: scale(0.8);
     margin: -22px -15px -15px -15px;
 }
-.preferences_small_cards .filterDiv.card-standard-project,
-.preferences_small_cards .filterDiv:hover.card-standard-project {
+.preferences_small_cards .filterDiv.card-standard-project:not(.colony-card),
+.preferences_small_cards .filterDiv.card-standard-project:not(.colony-card):hover {
     margin: -0px -10px -15px -10px;
 }
 
 /*Selection check box room for smaller cards */
-.preferences_small_cards input[type="checkbox"] + .filterDiv.card-container,
-.preferences_small_cards input[type="radio"] + .filterDiv.card-container{
+.preferences_small_cards input[type="checkbox"] + .filterDiv.card-container:not(.colony-card),
+.preferences_small_cards input[type="radio"] + .filterDiv.card-container:not(.colony-card){
     margin-top: -8px;
 }
 
-.preferences_small_cards input[type="checkbox"] + .filterDiv.card-standard-project,
-.preferences_small_cards input[type="radio"] + .filterDiv.card-standard-project{
+.preferences_small_cards input[type="checkbox"] + .filterDiv.card-standard-project:not(.colony-card),
+.preferences_small_cards input[type="radio"] + .filterDiv.card-standard-project:not(.colony-card){
     margin-top: 0px;
 }
 
-.preferences_small_cards input[type="checkbox"]:checked + .filterDiv,
-.preferences_small_cards input[type="radio"]:checked + .filterDiv {
+.preferences_small_cards input[type="checkbox"]:checked + .filterDiv:not(.colony-card),
+.preferences_small_cards input[type="radio"]:checked + .filterDiv:not(.colony-card) {
     transform: scale(0.8);
 }
 
@@ -487,7 +503,7 @@
     }
 }
 /* Magnify the wee little cards in a special way, if requested */
-.preferences_small_cards.preferences_magnify_cards .filterDiv:hover {
+.preferences_small_cards.preferences_magnify_cards .filterDiv:not(.colony-card):hover {
     transform: scale(0.95);
 }
 

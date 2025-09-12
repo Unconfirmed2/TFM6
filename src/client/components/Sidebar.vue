@@ -4,6 +4,12 @@
     <div class="gen-text" v-i18n>GEN</div>
     <div class="gen-marker">{{ getGenMarker() }}</div>
   </div>
+
+  <!-- Chat icon placed first in the sidebar -->
+  <div class="sidebar_item sidebar_item_shortcut draggable-section" :title="getSectionTitle(6)"
+       @click.prevent="toggleChat" draggable="false" role="button" :aria-pressed="chatVisible.toString()">
+    <i class="sidebar_icon sidebar_icon--chat"></i>
+  </div>
   
   <!-- Global Parameters Popup -->
   <div v-if="globalParamsOpen" class="global-params-popup">
@@ -18,29 +24,24 @@
     <div :class="'party-name party-name-indicator party-name--'+rulingPartyToCss()"> <span v-i18n>{{ getRulingParty() }}</span></div>
   </div>
   
-  <!-- Chat Toggle Icon -->
-  <div class="sidebar_item chat-toggle" @click="toggleChatFooter" :title="$t('Toggle Chat')">
-    <i class="sidebar_icon sidebar_icon--chat-toggle"></i>
-  </div>
-
   <!-- Dynamic sidebar icons based on section order -->
   <template v-for="sectionId in sectionOrder" :key="sectionId">
-    <a v-if="shouldShowSection(sectionId)"
-       :href="getSectionHref(sectionId)"
-       :title="getSectionTitle(sectionId)">
-      <div class="sidebar_item sidebar_item_shortcut draggable-section"
-           :class="{ 'goto-cards': sectionId === 3 }"
-           draggable="true"
-           @dragstart="onSectionDragStart($event, sectionId)"
-           @dragend="onSectionDragEnd"
-           @dragover="onSectionDragOver($event, sectionId)"
-           @dragleave="onSectionDragLeave"
-           @drop="onSectionDrop($event, sectionId)">
-        <i class="sidebar_icon" :class="getSectionIconClass(sectionId)">
-          <slot v-if="sectionId === 3"></slot>
-        </i>
-      </div>
-    </a>
+    <template v-if="shouldShowSection(sectionId) && sectionId !== 6">
+      <a :href="getSectionHref(sectionId)" :title="getSectionTitle(sectionId)">
+        <div class="sidebar_item sidebar_item_shortcut draggable-section"
+             :class="{ 'goto-cards': sectionId === 3 }"
+             draggable="true"
+             @dragstart="onSectionDragStart($event, sectionId)"
+             @dragend="onSectionDragEnd"
+             @dragover="onSectionDragOver($event, sectionId)"
+             @dragleave="onSectionDragLeave"
+             @drop="onSectionDrop($event, sectionId)">
+          <i class="sidebar_icon" :class="getSectionIconClass(sectionId)">
+            <slot v-if="sectionId === 3"></slot>
+          </i>
+        </div>
+      </a>
+    </template>
   </template>
 
   <language-icon></language-icon>
@@ -134,6 +135,10 @@ export default Vue.extend({
       type: Array as () => number[],
       default: () => [1, 2, 3, 4, 5],
     },
+    chatVisible: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     'game-setup-detail': GameSetupDetail,
@@ -151,7 +156,6 @@ export default Vue.extend({
       'draggedSection': null as number | null,
       'dragOverSection': null as number | null,
       'globalParamsOpen': false,
-      'chatFooterOpen': false,
     };
   },
   methods: {
@@ -229,11 +233,16 @@ export default Vue.extend({
         case 3: return 'sidebar_icon--cards';
         case 4: return 'sidebar_icon--colonies';
         case 5: return 'sidebar_icon--log';
+        case 6: return 'sidebar_icon--chat';
         default: return 'sidebar_icon--unknown';
       }
     },
     getSectionHref(sectionId: number): string {
       return '#' + SectionOrderStorage.getSectionName(sectionId);
+    },
+
+    toggleChat(): void {
+      this.$emit('toggle-chat');
     },
     getSectionTitle(sectionId: number): string {
       return this.$t(SectionOrderStorage.getSectionTitle(sectionId));
@@ -245,11 +254,6 @@ export default Vue.extend({
     },
     toggleGlobalParams() {
       this.globalParamsOpen = !this.globalParamsOpen;
-    },
-    toggleChatFooter() {
-      this.chatFooterOpen = !this.chatFooterOpen;
-      // Emit event to PlayerHome to toggle chat footer
-      this.$emit('chat-footer-toggle', this.chatFooterOpen);
     },
   },
   computed: {

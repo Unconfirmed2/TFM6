@@ -186,17 +186,29 @@ export default Vue.extend({
 <style scoped>
 .chat-container {
   border: 1px solid #444;
-  border-radius: 4px;
+  border-radius: 8px;
   overflow: hidden;
   background-color: #222;
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 12px);
+  left: 70px;
+  right: 12px;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  height: 300px;
+  max-height: 300px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
 }
 
 .chat-messages {
-  height: 200px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: calc(300px - 64px);
   overflow-y: auto;
-  padding: 6px;
+  padding: 8px;
   background-color: #1a1a1a;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .chat-message {
@@ -244,9 +256,11 @@ export default Vue.extend({
 
 .chat-input-container {
   display: flex;
-  padding: 6px;
+  padding: 8px;
   background-color: #2a2a2a;
   border-top: 1px solid #444;
+  flex: 0 0 auto;
+  height: 56px;
 }
 
 .chat-input {

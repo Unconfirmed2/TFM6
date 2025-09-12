@@ -14,6 +14,12 @@
       </div>
       <div class="preferences_panel_item">
         <label class="form-switch">
+          <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.small_colonies" data-test="small_colonies">
+          <i class="form-icon"></i> <span v-i18n>Smaller colony cards</span>
+        </label>
+      </div>
+      <div class="preferences_panel_item">
+        <label class="form-switch">
           <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.magnify_cards" data-test="magnify_cards">
           <i class="form-icon"></i> <span v-i18n>Magnify cards on hover</span>
         </label>

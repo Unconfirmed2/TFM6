@@ -98,6 +98,7 @@ import Card from '@/client/components/card/Card.vue';
 import AppButton from '@/client/components/common/AppButton.vue';
 import CardGroup from '@/client/components/overview/CardGroup.vue';
 import {CardType} from '@/common/cards/CardType';
+import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
 import {getCardsByType, isCardActivated} from '@/client/utils/CardUtils';
 import {sortActiveCards} from '@/client/utils/ActiveCardsSortingOrder';
 
@@ -117,6 +118,7 @@ export default Vue.extend({
     'card-group': CardGroup,
   },
   data() {
+    const preferences = getPreferences();
     return {
       activeFilter: 'all',
       groupOrder: [
@@ -129,16 +131,7 @@ export default Vue.extend({
         'event',
         'self_replicating',
       ] as string[],
-      groupDisplayModes: {
-        corporation: 'grid',
-        prelude: 'grid',
-        ceo: 'grid',
-        active_with_actions: 'grid',
-        active_without_actions: 'grid',
-        automated: 'stacked',
-        event: 'hidden',
-        self_replicating: 'stacked',
-      } as {[k: string]: string},
+      groupDisplayModes: {...preferences.other_player_group_modes} as {[k: string]: string},
     };
   },
   methods: {
@@ -156,6 +149,8 @@ export default Vue.extend({
     },
     setMode(groupKey: string, mode: string) {
       this.groupDisplayModes[groupKey] = mode;
+      // Persist the updated group display modes
+      PreferencesManager.INSTANCE.set('other_player_group_modes', this.groupDisplayModes);
     },
     defaultModes() {
       return {
@@ -172,6 +167,8 @@ export default Vue.extend({
     unhideAll() {
       this.groupDisplayModes = this.defaultModes();
       this.activeFilter = 'all';
+      // Persist the reset group display modes
+      PreferencesManager.INSTANCE.set('other_player_group_modes', this.groupDisplayModes);
     },
     getGroupCards(groupKey: string) {
       const t = this.player.tableau || [];
@@ -223,6 +220,7 @@ export default Vue.extend({
       // If filter is 'all' or cleared, restore default display modes
       if (!newVal || newVal === 'all') {
         this.groupDisplayModes = this.defaultModes();
+        PreferencesManager.INSTANCE.set('other_player_group_modes', this.groupDisplayModes);
         return;
       }
 
@@ -237,6 +235,8 @@ export default Vue.extend({
           this.groupDisplayModes[k] = 'hidden';
         }
       }
+      // Persist the updated group display modes
+      PreferencesManager.INSTANCE.set('other_player_group_modes', this.groupDisplayModes);
     },
   },
   computed: {

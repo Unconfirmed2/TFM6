@@ -15,7 +15,7 @@
       <CardVictoryPoints v-if="cardMetadata.victoryPoints" :victoryPoints="cardMetadata.victoryPoints" />
       <CardExtraContent :card="card" />
       <slot/>
-  </div>
+    </div>
 </template>
 
 <script lang="ts">
