@@ -32,6 +32,7 @@ import {GlobalParameter} from '../common/GlobalParameter';
 import {UnderworldData} from './underworld/UnderworldData';
 import {OrOptions} from './inputs/OrOptions';
 import {IStandardProjectCard} from './cards/IStandardProjectCard';
+import {ChatData, ChatMessage} from '../common/chat/ChatMessage';
 
 export interface Score {
   corporation: String;
@@ -246,6 +247,11 @@ export interface IGame extends Logger {
 
   underworldDraftEnabled: boolean;
   getActionCount(): number;
+
+  // Chat system
+  chatData: ChatData;
+  addChatMessage(playerId: PlayerId, message: string): string;
+  getChatMessages(sinceId?: string): ChatMessage[];
 }
 
 export function isIGame(object: any): object is IGame {

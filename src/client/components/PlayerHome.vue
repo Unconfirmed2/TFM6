@@ -24,7 +24,8 @@
       :playerNumber = "playerView.players.length"
       :lastSoloGeneration = "game.lastSoloGeneration"
       :sectionOrder="sectionOrder"
-      @section-order-changed="onSectionOrderChanged">
+      @section-order-changed="onSectionOrderChanged"
+      @chat-footer-toggle="onChatFooterToggle">
         <div class="deck-size">{{ game.deckSize }}</div>
     </sidebar>
 
@@ -148,6 +149,7 @@
             :step="game.step"></log-panel>
         </div>
 
+
       </player-home-section-container>
     </div>
 
@@ -254,6 +256,14 @@
     </div>
     <purge-warning :expectedPurgeTimeMs="playerView.game.expectedPurgeTimeMs"></purge-warning>
   </div>
+
+  <!-- Sticky Chat Footer -->
+  <chat-component 
+    v-if="chatFooterOpen" 
+    class="chat-sticky-footer"
+    :playerView="playerView"
+    :players="playerView.players">
+  </chat-component>
 </template>
 
 <script lang="ts">
@@ -277,6 +287,7 @@ import PlayerInfoTopContainer from '@/client/components/PlayerInfoTopContainer.v
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
 import UndergroundTokens from '@/client/components/underworld/UndergroundTokens.vue';
+import ChatComponent from '@/client/components/ChatComponent.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
 import {KeyboardNavigation} from '@/client/components/KeyboardNavigation';
@@ -298,6 +309,7 @@ export interface PlayerHomeModel {
   baseBoardWidth: number;
   baseBoardHeight: number;
   sectionOrder: number[];
+  chatFooterOpen: boolean;
 }
 
 class TerraformedAlertDialog {
@@ -318,6 +330,7 @@ export default Vue.extend({
       baseBoardWidth: 0,
       baseBoardHeight: 0,
       sectionOrder: [1, 2, 3, 4, 5], // Default order: Board, Actions, Cards, Colonies, Log
+      chatFooterOpen: false,
     };
   },
   watch: {
@@ -389,6 +402,7 @@ export default Vue.extend({
     PlanetaryTracks,
     PurgeWarning,
     UndergroundTokens,
+    'chat-component': ChatComponent,
   },
   methods: {
     navigatePage(event: KeyboardEvent) {
@@ -485,7 +499,7 @@ export default Vue.extend({
       try {
         const wrapper: any = (this as any).$refs.boardWrapper;
         const ma: any = (this as any).$refs.boardMa;
-        if (wrapper && ma) {
+        if (wrapper && ma && ma.getBoundingClientRect) {
           // Unified sizing: measure the inner container when available and
           // scale the measured width/height for the wrapper. Fall back to
           // stored base values or sensible defaults.
@@ -563,6 +577,9 @@ export default Vue.extend({
       this.sectionOrder = currentOrder;
       SectionOrderStorage.updateSectionOrder(this.playerView.id, currentOrder);
     },
+    onChatFooterToggle(isOpen: boolean) {
+      this.chatFooterOpen = isOpen;
+    },
 
   },
   destroyed() {
@@ -577,7 +594,7 @@ export default Vue.extend({
     // initialize board size and listeners for scaling
     this.$nextTick(() => {
       const ma: any = (this as any).$refs.boardMa;
-      if (ma) {
+      if (ma && ma.getBoundingClientRect) {
         const rect = ma.getBoundingClientRect();
 
         // Debug: Check what's actually happening

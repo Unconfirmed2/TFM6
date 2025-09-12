@@ -80,6 +80,7 @@ import {Eris} from './cards/community/Eris';
 import {AresHazards} from './ares/AresHazards';
 import {hazardSeverity} from '../common/AresTileType';
 import {IStandardProjectCard} from './cards/IStandardProjectCard';
+import {ChatData, ChatMessage} from '../common/chat/ChatMessage';
 
 // Can be overridden by tests
 
@@ -98,6 +99,10 @@ export class Game implements IGame, Logger {
 
   // Game-level data
   public lastSaveId: number = 0;
+  public chatData: ChatData = {
+    messages: [],
+    lastMessageId: '',
+  };
   private clonedGamedId: string | undefined;
   public rng: SeededRandom;
   public spectatorId: SpectatorId | undefined;
@@ -435,6 +440,43 @@ export class Game implements IGame, Logger {
 
   public save(): void {
     GameLoader.getInstance().saveGame(this);
+  }
+
+  public addChatMessage(playerId: PlayerId, message: string): string {
+    const player = this.getPlayerById(playerId);
+    const messageId = `${Date.now()}_${playerId}`;
+    
+    const chatMessage = {
+      id: messageId,
+      playerId,
+      playerName: player.name,
+      message: message.trim(),
+      timestamp: Date.now(),
+    };
+    
+    this.chatData.messages.push(chatMessage);
+    this.chatData.lastMessageId = messageId;
+    
+    // Keep only last 100 messages to prevent memory bloat
+    if (this.chatData.messages.length > 100) {
+      this.chatData.messages = this.chatData.messages.slice(-100);
+    }
+    
+    this.save();
+    return messageId;
+  }
+
+  public getChatMessages(sinceId?: string): ChatMessage[] {
+    if (!sinceId) {
+      return this.chatData.messages;
+    }
+    
+    const sinceIndex = this.chatData.messages.findIndex(msg => msg.id === sinceId);
+    if (sinceIndex === -1) {
+      return this.chatData.messages;
+    }
+    
+    return this.chatData.messages.slice(sinceIndex + 1);
   }
 
   public serialize(): SerializedGame {

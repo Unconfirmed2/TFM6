@@ -15,7 +15,12 @@ export class SectionOrderStorage {
       if (order === null) {
         return [1, 2, 3, 4, 5]; // Default order: Board, Actions, Cards, Colonies, Log
       }
-      return JSON.parse(order);
+      const parsed = JSON.parse(order);
+      // Always return 5 sections, ignoring any 6th section (chat) from old data
+      if (Array.isArray(parsed)) {
+        return parsed.slice(0, 5).filter(x => x >= 1 && x <= 5);
+      }
+      return [1, 2, 3, 4, 5];
     } catch (err) {
       console.warn('unable to pull section order from local storage', err);
       return [1, 2, 3, 4, 5];

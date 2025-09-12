@@ -1,21 +1,26 @@
 <template>
 <div :class="'sidebar_cont sidebar '+getSideBarClass()">
-  <div class="tm" :title="$t('Generation Marker')">
+  <div class="tm" @click="toggleGlobalParams" :title="$t('Generation Marker (click for global parameters)')" style="cursor: pointer;">
     <div class="gen-text" v-i18n>GEN</div>
     <div class="gen-marker">{{ getGenMarker() }}</div>
   </div>
-  <div v-if="gameOptions.expansions.turmoil" :title="$t('Ruling Party')">
-    <div :class="'party-name party-name-indicator party-name--'+rulingPartyToCss()"> <span v-i18n>{{ getRulingParty() }}</span></div>
-  </div>
-  <div class="global_params">
+  
+  <!-- Global Parameters Popup -->
+  <div v-if="globalParamsOpen" class="global-params-popup">
     <global-parameter-value :param="this.globalParameter.TEMPERATURE" :value="this.temperature"></global-parameter-value>
     <global-parameter-value :param="this.globalParameter.OXYGEN" :value="this.oxygen"></global-parameter-value>
     <global-parameter-value :param="this.globalParameter.OCEANS" :value="this.oceans"></global-parameter-value>
     <global-parameter-value v-if="gameOptions.expansions.venus" :param="this.globalParameter.VENUS" :value="this.venus"></global-parameter-value>
     <MoonGlobalParameterValue v-if="gameOptions.expansions.moon" :moonData="this.moonData"></MoonGlobalParameterValue>
   </div>
-  <div class="sidebar_item preferences_player" :title="$t('Player Color Cube')">
-    <div :class="getPlayerColorCubeClass()+' player_bg_color_' + player_color"></div>
+
+  <div v-if="gameOptions.expansions.turmoil" :title="$t('Ruling Party')">
+    <div :class="'party-name party-name-indicator party-name--'+rulingPartyToCss()"> <span v-i18n>{{ getRulingParty() }}</span></div>
+  </div>
+  
+  <!-- Chat Toggle Icon -->
+  <div class="sidebar_item chat-toggle" @click="toggleChatFooter" :title="$t('Toggle Chat')">
+    <i class="sidebar_icon sidebar_icon--chat-toggle"></i>
   </div>
 
   <!-- Dynamic sidebar icons based on section order -->
@@ -145,12 +150,11 @@ export default Vue.extend({
       'globalParameter': GlobalParameter,
       'draggedSection': null as number | null,
       'dragOverSection': null as number | null,
+      'globalParamsOpen': false,
+      'chatFooterOpen': false,
     };
   },
   methods: {
-    getPlayerColorCubeClass(): string {
-      return this.acting_player && (getPreferences().hide_animated_sidebar === false) ? 'preferences_player_inner active' : 'preferences_player_inner';
-    },
     getSideBarClass(): string {
       return this.acting_player && (getPreferences().hide_animated_sidebar === false) ? 'preferences_acting_player' : 'preferences_nonacting_player';
     },
@@ -238,6 +242,14 @@ export default Vue.extend({
       // Colonies only show if colonies exist
       if (sectionId === 4) return this.coloniesCount > 0;
       return true;
+    },
+    toggleGlobalParams() {
+      this.globalParamsOpen = !this.globalParamsOpen;
+    },
+    toggleChatFooter() {
+      this.chatFooterOpen = !this.chatFooterOpen;
+      // Emit event to PlayerHome to toggle chat footer
+      this.$emit('chat-footer-toggle', this.chatFooterOpen);
     },
   },
   computed: {

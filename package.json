@@ -41,6 +41,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-deep-equal-ignore-undefined": "^1.1.1",
     "compression-webpack-plugin": "^8.0.0",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^5.2.6",
     "eslint": "^8.20.0",
     "eslint-config-google": "^0.14.0",
