@@ -73,7 +73,7 @@ export default Vue.extend({
 .group-title { font-weight:600; }
 .group-count { color: #ccc; }
 .group-mode-select { margin-left:auto; }
-.group-cards.grid-two { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; width:fit-content;}
+.group-cards.grid-two { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; align-items:flex-start; }
 .group-cards.grid-small { display:flex; flex-direction:column; gap:6px; }
 .cardbox { margin:4px; flex: 0 0 180px; }
 

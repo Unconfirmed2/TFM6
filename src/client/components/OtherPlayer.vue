@@ -24,7 +24,7 @@
         @change-mode="setMode(activeFilter, $event)"
       ></card-group>
     </div>
-    <div v-if="hasAnyCards" class="player_home_block other-player-columns">
+    <div v-if="hasAnyCards" class="player_home_block other-player-columns" :style="{ minHeight: leftColumnHeight + 'px' }">
       <div class="other-player-left">
   <div v-if="hiddenGroups.length > 0" class="hidden-groups">
           <card-group
@@ -132,11 +132,35 @@ export default Vue.extend({
         'self_replicating',
       ] as string[],
       groupDisplayModes: {...preferences.other_player_group_modes} as {[k: string]: string},
+      leftColumnHeight: 0,
+      resizeObserver: null as any,
     };
+  },
+  mounted() {
+    this.setupHeightObserver();
+  },
+  beforeDestroy() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
   },
   methods: {
     hideMe() {
       vueRoot(this).setVisibilityState('pinned_player_' + this.playerIndex, false);
+    },
+    setupHeightObserver() {
+      this.$nextTick(() => {
+        const leftColumn = this.$el.querySelector('.other-player-left');
+        if (leftColumn && window.ResizeObserver) {
+          this.resizeObserver = new ResizeObserver(() => {
+            this.leftColumnHeight = leftColumn.getBoundingClientRect().height;
+          });
+          this.resizeObserver.observe(leftColumn);
+          // Initial height calculation
+          this.leftColumnHeight = leftColumn.getBoundingClientRect().height;
+        }
+      });
     },
     isVisible() {
       const root: any = vueRoot(this);
@@ -284,7 +308,7 @@ export default Vue.extend({
 .other-player-columns { display: flex; gap: 12px; align-items:flex-start; }
 .other-player-left { flex: 0 0 320px; display:flex; flex-direction:column; gap:8px; }
 .other-player-right { flex: 1 1 auto; display:flex; gap:12px; flex-wrap:wrap; align-content:flex-start; }
-.other-player-right .card-group-wrapper { flex: 1 1 220px; min-width:220px; }
+.other-player-right .card-group-wrapper { flex: 1 1 auto; }
 .other-player-left .card-group-wrapper { width:100%; }
  .card-group-wrapper { background: transparent; padding:8px; border-radius:4px; }
 .group-cards.grid-layout { display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; }

@@ -9,6 +9,9 @@
   <div class="sidebar_item sidebar_item_shortcut draggable-section" :title="getSectionTitle(6)"
        @click.prevent="toggleChat" draggable="false" role="button" :aria-pressed="chatVisible.toString()">
     <i class="sidebar_icon sidebar_icon--chat"></i>
+    <div v-if="!chatVisible && unreadMessageCount > 0" class="unread-badge">
+      {{ unreadMessageCount > 99 ? '99+' : unreadMessageCount }}
+    </div>
   </div>
   
   <!-- Global Parameters Popup -->
@@ -44,31 +47,34 @@
     </template>
   </template>
 
-  <language-icon></language-icon>
+  <!-- Bottom icons container -->
+  <div class="sidebar-bottom-icons">
+    <language-icon></language-icon>
 
-  <div class="sidebar_item sidebar_item--info" :title="$t('Information panel')">
-    <i class="sidebar_icon sidebar_icon--info"
-      :class="{'sidebar_item--is-active': ui.gamesetup_detail_open}"
-      v-on:click="ui.gamesetup_detail_open = !ui.gamesetup_detail_open"
-      :title="$t('game setup details')"></i>
-    <div class="info_panel" v-if="ui.gamesetup_detail_open">
-      <div class="info_panel-spacing"></div>
-      <div class="info-panel-title" v-i18n>Game Setup Details</div>
-      <game-setup-detail :gameOptions="gameOptions" :playerNumber="playerNumber" :lastSoloGeneration="lastSoloGeneration"></game-setup-detail>
+    <div class="sidebar_item sidebar_item--info" :title="$t('Information panel')">
+      <i class="sidebar_icon sidebar_icon--info"
+        :class="{'sidebar_item--is-active': ui.gamesetup_detail_open}"
+        v-on:click="ui.gamesetup_detail_open = !ui.gamesetup_detail_open"
+        :title="$t('game setup details')"></i>
+      <div class="info_panel" v-if="ui.gamesetup_detail_open">
+        <div class="info_panel-spacing"></div>
+        <div class="info-panel-title" v-i18n>Game Setup Details</div>
+        <game-setup-detail :gameOptions="gameOptions" :playerNumber="playerNumber" :lastSoloGeneration="lastSoloGeneration"></game-setup-detail>
 
-      <div class="info_panel_actions">
-        <button class="btn btn-lg btn-primary" v-on:click="ui.gamesetup_detail_open=false" v-i18n>Ok</button>
+        <div class="info_panel_actions">
+          <button class="btn btn-lg btn-primary" v-on:click="ui.gamesetup_detail_open=false" v-i18n>Ok</button>
+        </div>
       </div>
     </div>
+
+    <a href="help" target="_blank">
+      <div class="sidebar_item sidebar_item--help">
+        <i class="sidebar_icon sidebar_icon--help" :title="$t('player aid')"></i>
+      </div>
+    </a>
+
+    <preferences-icon></preferences-icon>
   </div>
-
-  <a href="help" target="_blank">
-    <div class="sidebar_item sidebar_item--help">
-      <i class="sidebar_icon sidebar_icon--help" :title="$t('player aid')"></i>
-    </div>
-  </a>
-
-  <preferences-icon></preferences-icon>
 </div>
 </template>
 
@@ -138,6 +144,10 @@ export default Vue.extend({
     chatVisible: {
       type: Boolean,
       default: false,
+    },
+    unreadMessageCount: {
+      type: Number,
+      default: 0,
     },
   },
   components: {
@@ -264,3 +274,28 @@ export default Vue.extend({
 });
 
 </script>
+
+<style scoped>
+.sidebar_item {
+  position: relative;
+}
+
+.unread-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid #cc0000;
+}
+</style>

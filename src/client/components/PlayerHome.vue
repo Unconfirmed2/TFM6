@@ -25,6 +25,7 @@
       :lastSoloGeneration = "game.lastSoloGeneration"
       :sectionOrder="sectionOrder"
       :chatVisible="chatVisible"
+      :unreadMessageCount="unreadMessageCount"
       @section-order-changed="onSectionOrderChanged"
       @toggle-chat="chatVisible = !chatVisible">
         <div class="deck-size">{{ game.deckSize }}</div>
@@ -156,7 +157,8 @@
             <chat-component 
               v-show="chatVisible"
               :playerView="playerView"
-              :players="playerView.players">
+              :players="playerView.players"
+              @new-message="onNewMessage">
             </chat-component>
         </div>
 
@@ -314,6 +316,7 @@ export interface PlayerHomeModel {
   baseBoardHeight: number;
   sectionOrder: number[];
   chatVisible: boolean;
+  unreadMessageCount: number;
 }
 
 class TerraformedAlertDialog {
@@ -335,6 +338,7 @@ export default Vue.extend({
       baseBoardHeight: 0,
       sectionOrder: [1, 2, 3, 4, 5, 6], // Default order: Board, Actions, Cards, Colonies, Log, Chat
       chatVisible: preferences.chat_visible,
+      unreadMessageCount: 0,
     };
   },
   watch: {
@@ -352,6 +356,9 @@ export default Vue.extend({
     },
     chatVisible: function toggle_chat() {
       PreferencesManager.INSTANCE.set('chat_visible', this.chatVisible);
+      if (this.chatVisible) {
+        this.unreadMessageCount = 0;
+      }
     },
     boardScale: function save_board_scale() {
       PreferencesManager.INSTANCE.set('board_scale', this.boardScale);
@@ -587,6 +594,11 @@ export default Vue.extend({
 
       this.sectionOrder = currentOrder;
       SectionOrderStorage.updateSectionOrder(this.playerView.id, currentOrder);
+    },
+    onNewMessage(): void {
+      if (!this.chatVisible) {
+        this.unreadMessageCount++;
+      }
     },
 
   },

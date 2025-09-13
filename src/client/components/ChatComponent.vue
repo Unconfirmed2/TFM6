@@ -11,12 +11,15 @@
           class="chat-message"
           :class="{ 'own-message': message.playerId === playerView.id }"
         >
-          <div class="chat-message-header">
+          <div v-if="message.playerId !== playerView.id" class="chat-message-header">
             <span 
               class="chat-player-name" 
               :class="getPlayerColorClass(message.playerId)"
             >{{ message.playerName }}</span>
             <span class="chat-timestamp">{{ formatTime(message.timestamp) }}</span>
+          </div>
+          <div v-else class="chat-message-own-timestamp">
+            {{ formatTime(message.timestamp) }}
           </div>
           <div class="chat-message-content">{{ message.message }}</div>
         </div>
@@ -102,8 +105,12 @@ export default Vue.extend({
           const data = await response.json();
           
           if (data.messages && data.messages.length > 0) {
+            const hasNewMessages = data.messages.some((msg: ChatMessage) => msg.playerId !== this.playerView.id);
             this.messages.push(...data.messages);
             this.lastMessageId = data.lastMessageId;
+            if (hasNewMessages) {
+              this.$emit('new-message');
+            }
             this.$nextTick(() => {
               this.scrollToBottom();
             });
@@ -206,45 +213,78 @@ export default Vue.extend({
   min-height: 0;
   max-height: calc(300px - 64px);
   overflow-y: auto;
-  padding: 8px;
+  padding: 12px;
   background-color: #1a1a1a;
-  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .chat-message {
-  margin-bottom: 4px;
-  padding: 4px;
-  border-radius: 3px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background-color: #2a2a2a;
-  font-size: 12px;
+  font-size: 16px;
+  max-width: 80%;
 }
 
 .chat-message.own-message {
-  background-color: #333;
+  background-color: #0078d4;
+  color: white;
+  margin-left: auto;
+  margin-right: 0;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-message:not(.own-message) {
+  background-color: #3a3a3a;
+  margin-right: auto;
+  margin-left: 0;
+  border-bottom-left-radius: 4px;
 }
 
 .chat-message-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1px;
-  font-size: 0.75em;
+  margin-bottom: 4px;
+  font-size: 16px;
 }
 
 .chat-player-name {
   font-weight: bold;
   padding: 2px 6px;
   border-radius: 3px;
+  font-size: 16px;
 }
 
 .chat-timestamp {
-  color: #888;
-  font-size: 0.9em;
+  color: white;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.chat-message.own-message .chat-timestamp {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-message-own-timestamp {
+  color: white;
+  font-size: 16px;
+  text-align: right;
+  margin-bottom: 2px;
+  opacity: 0.8;
 }
 
 .chat-message-content {
   word-wrap: break-word;
   color: #ddd;
+  line-height: 1.4;
+}
+
+.chat-message.own-message .chat-message-content {
+  color: white;
 }
 
 .no-messages {
@@ -271,7 +311,7 @@ export default Vue.extend({
   background-color: #333;
   color: #ddd;
   margin-right: 6px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .chat-input:focus {
@@ -292,7 +332,7 @@ export default Vue.extend({
   color: white;
   cursor: pointer;
   min-width: 50px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .chat-send-btn:hover:not(:disabled) {
