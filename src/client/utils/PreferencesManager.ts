@@ -21,6 +21,7 @@ export type Preferences = {
   debug_view: boolean,
   symbol_overlay: boolean,
   experimental_ui: boolean,
+  right_chat_log: boolean,
   lang: string,
   section_order: number[],
   
@@ -66,6 +67,7 @@ const defaults: Preferences = {
 
   experimental_ui: false,
   debug_view: false,
+  right_chat_log: false,
   section_order: [1, 2, 3, 4, 5], // Board, Actions, Cards, Colonies, Log
   
   // UI state that should persist across component remounting

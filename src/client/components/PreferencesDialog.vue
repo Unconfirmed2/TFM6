@@ -101,6 +101,14 @@
         </label>
       </div>
 
+      <div class="preferences_panel_item">
+        <label class="form-switch">
+          <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.right_chat_log" data-test="right_chat_log">
+          <i class="form-icon"></i> <span v-i18n>Right Chat/Log</span>
+          <span class="tooltip tooltip-left" :data-tooltip="$t('Dock chat and log to the right sidepanel and hide in-place panels')">&#9432;</span>
+        </label>
+      </div>
+
       <div class="preferences_panel_actions">
         <button class="btn btn-lg btn-primary" v-on:click="okClicked" v-i18n>Ok</button>
         <button class="btn btn-lg btn-primary" v-on:click="$refs.bugDialog.show();" v-i18n>Report a bug</button>

@@ -31,8 +31,11 @@
         <div class="deck-size">{{ game.deckSize }}</div>
     </sidebar>
 
-    <!-- Dynamic section rendering based on user-defined order -->
-    <div v-for="sectionId in sectionOrder" :key="sectionId">
+    <!-- Main layout with docked right sidepanel -->
+    <div class="player-main-layout">
+      <div class="player-main-flex">
+        <!-- Dynamic section rendering based on user-defined order -->
+        <div v-for="sectionId in sectionOrder" :key="sectionId">
       <player-home-section-container :sectionType="getSectionType(sectionId)" :index="sectionId">
 
         <!-- BOARD SECTION -->
@@ -170,6 +173,23 @@
 
 
       </player-home-section-container>
+        </div>
+
+      </div>
+
+    <fixed-dock-host>
+      <div class="docked-sidepanel">
+        <chat-panel :playerView="playerView" :players="playerView.players" @new-message="onNewMessage" />
+        <docked-log-panel
+          :id="playerView.id"
+          :players="playerView.players"
+          :generation="game.generation"
+          :lastSoloGeneration="game.lastSoloGeneration"
+          :color="thisPlayer.color"
+          :step="game.step"
+        />
+      </div>
+    </fixed-dock-host>
     </div>
 
     <!-- Underground tokens (always at bottom) -->
@@ -300,6 +320,9 @@ import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import PurgeWarning from '@/client/components/common/PurgeWarning.vue';
 import UndergroundTokens from '@/client/components/underworld/UndergroundTokens.vue';
 import ChatComponent from '@/client/components/ChatComponent.vue';
+import DockedChatPanel from '@/client/components/docked/ChatPanel.vue';
+import DockedLogPanel from '@/client/components/docked/DockedLogPanel.vue';
+import FixedDockHost from '@/client/components/docked/FixedDockHost.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
 import {KeyboardNavigation} from '@/client/components/KeyboardNavigation';
@@ -426,6 +449,9 @@ export default Vue.extend({
     PurgeWarning,
     UndergroundTokens,
     'chat-component': ChatComponent,
+    'chat-panel': DockedChatPanel,
+    'docked-log-panel': DockedLogPanel,
+    'fixed-dock-host': FixedDockHost,
   },
   methods: {
     navigatePage(event: KeyboardEvent) {
@@ -684,4 +710,98 @@ export default Vue.extend({
 .board-scale-controls { display:flex; align-items:center; gap:8px; }
 .board-scale-value { font-weight:600; }
 .btn-small { padding:4px 8px; font-size:14px; }
+/* Layout for main content with docked right sidepanel */
+.player-main-layout { display: flex; gap: 12px; align-items: flex-start; }
+.player-main-flex { flex: 1 1 auto; min-width: 0; /* reserve space so fixed dock doesn't cover content */ margin-right: 15%; }
+.docked-sidepanel { position: fixed; top: 0; right: 0; width: 20%; height: 100vh; box-sizing: border-box; padding: 0; overflow: hidden; z-index: 1200; display: flex; flex-direction: column; gap: 0; background-color: #000; color: #ddd; }
+
+/* Ensure duplicated chat/log appear inside the dock instead of fixed to viewport */
+.docked-sidepanel .chat-container {
+  /* remove fixed positioning and let the dock control sizing */
+  position: static !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  /* use available dock height: 75% of dock */
+  /* use --vh set by JS for accurate viewport height (handles zoom/mobile UI) */
+  height: calc(var(--vh, 1vh) * 100 * 0.75) !important;
+  /* allow flex children to size properly and avoid clipping */
+  max-height: none !important;
+  min-height: 0 !important;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+}
+
+/* Make messages area take available space and be scrollable; pin input to bottom */
+.docked-sidepanel .chat-messages {
+  /* ensure the scrollable messages area can grow/shrink inside flex containers */
+  flex: 1 1 auto !important;
+  min-height: 0 !important; /* allow proper flexbox scrolling */
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding: 8px !important;
+}
+
+/* Remove internal bottom padding inside the chat input so it sits flush */
+.docked-sidepanel .chat-input-container {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: auto !important;
+  background: transparent !important;
+  border-top: none !important;
+}
+
+/* Make the input expand and sit flush; remove margins that create gaps */
+.docked-sidepanel .chat-input {
+  flex: 1 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  padding: 8px !important; /* keep sensible inner padding for typing */
+}
+.docked-sidepanel .chat-send-btn {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+.docked-sidepanel .log-container {
+  /* Make log panel take the remaining dock height (25%) and scroll */
+  height: calc(var(--vh, 1vh) * 100 * 0.25) !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.25) !important;
+  flex: 0 0 auto;
+  overflow: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Force inner panels to be transparent so dock background shows through */
+.docked-sidepanel .panel,
+.docked-sidepanel .panel-body,
+.docked-sidepanel .card-panel,
+.docked-sidepanel .log-panel,
+.docked-sidepanel .chat-container {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hide titles/headers inside the dock to reduce visual clutter */
+.docked-sidepanel .dynamic-title,
+.docked-sidepanel .log-title,
+.docked-sidepanel .log-generations h2,
+.docked-sidepanel .player_home_anchor,
+.docked-sidepanel .player_home_block .dynamic-title {
+  display: none !important;
+}
+
+/* Remove pagination / generation indicators inside the dock (we use dropdown in wrapper) */
+.docked-sidepanel .log-gen-numbers,
+.docked-sidepanel .log-gen-indicator,
+.docked-sidepanel .log-gen-indicator--selected {
+  display: none !important;
+}
 </style>

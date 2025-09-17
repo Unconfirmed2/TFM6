@@ -446,4 +446,52 @@ export default Vue.extend({
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
+
+/* Overrides when chat is docked inside the sidepanel */
+.docked-sidepanel .chat-container {
+  position: static !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  /* ensure outer chat container doesn't constrain flex children inside the dock */
+  min-height: 0 !important;
+}
+
+.docked-sidepanel .chat-messages {
+  padding: 6px !important;
+  background-color: transparent !important;
+  overflow-y: auto !important;
+  max-height: none !important;
+}
+
+.docked-sidepanel .chat-input-container {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: auto !important;
+  background: transparent !important;
+  border-top: none !important;
+}
+
+.docked-sidepanel .chat-input {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+}
+
+.docked-sidepanel .chat-send-btn {
+  margin: 0 !important;
+}
+
+/* Ensure the input bar is pinned to the bottom inside the dock */
+.docked-sidepanel .chat-messages {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+}
+.docked-sidepanel .chat-input-container {
+  /* push the input to the bottom */
+  margin-top: auto !important;
+}
 </style>

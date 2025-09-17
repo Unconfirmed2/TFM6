@@ -1,18 +1,6 @@
 <template>
   <div class="log-container">
-    <div class="log-generations">
-      <h2 :class="getTitleClasses()">
-          <span v-i18n>Game log</span>
-      </h2>
-      <div class="log-gen-title"  v-i18n>Gen: </div>
-      <div class="log-gen-numbers">
-        <div v-for="n in getGenerationsRange()" :key="n" :class="getClassesGenIndicator(n)" v-on:click.prevent="selectGeneration(n)">
-          {{ n }}
-        </div>
-      </div>
-      <span class="label-additional" v-if="players.length === 1"><span :class="lastGenerationClass" v-i18n>of {{lastSoloGeneration}}</span></span>
-    </div>
-    <div class="panel log-panel">
+      <div class="panel log-panel">
       <div id="logpanel-scrollable" class="panel-body">
         <ul v-if="messages">
           <log-message-component v-for="(message, index) in messages" :key="index" :message="message" :players="players" v-on:click="messageClicked(message)"></log-message-component>
