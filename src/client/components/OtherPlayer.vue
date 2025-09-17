@@ -119,8 +119,11 @@ export default Vue.extend({
   },
   data() {
     const preferences = getPreferences();
+    const playerKey = (this as any).player && (this as any).player.id ? `player_${(this as any).player.id}` : `player_index_${(this as any).playerIndex}`;
+    const persistedFilters = (PreferencesManager.INSTANCE.values() as any).other_player_active_filters || {};
+    const initialFilter = persistedFilters[playerKey] || 'all';
     return {
-      activeFilter: 'all',
+      activeFilter: initialFilter,
       groupOrder: [
         'corporation',
         'prelude',
@@ -241,6 +244,12 @@ export default Vue.extend({
   },
   watch: {
     activeFilter(newVal: string) {
+      // Persist the active filter per-player so it survives remounts
+      const playerKey = (this as any).player && (this as any).player.id ? `player_${(this as any).player.id}` : `player_index_${(this as any).playerIndex}`;
+      const prefs = (PreferencesManager.INSTANCE.values() as any).other_player_active_filters || {};
+      prefs[playerKey] = newVal || 'all';
+      PreferencesManager.INSTANCE.set('other_player_active_filters', prefs);
+
       // If filter is 'all' or cleared, restore default display modes
       if (!newVal || newVal === 'all') {
         this.groupDisplayModes = this.defaultModes();

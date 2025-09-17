@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="card-group-wrapper">
+  <div v-show="visible" class="card-group-wrapper">
     <div :class="['group-header', groupKey ? 'group-header-' + groupKey : '']">
       <span class="group-title">{{ title }}</span>
       <span class="group-count">({{ cards.length }})</span>
@@ -11,7 +11,7 @@
     </div>
     <div v-if="!headerOnly" :class="{ 'full-width': fullWidth }">
       <div v-if="localMode === 'grid'" :class="['group-cards', small ? 'grid-small' : (fullWidth ? 'grid-one' : 'grid-two')]">
-  <div v-for="(card, idx) in typedCards" :key="idx" class="cardbox">
+        <div v-for="(card, idx) in typedCards" :key="card && card.name ? card.name : idx" class="cardbox">
           <Card :card="card" :actionUsed="isCardActivated(card, player)" :cubeColor="player.color"/>
         </div>
       </div>

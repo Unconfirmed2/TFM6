@@ -457,9 +457,9 @@ export class Game implements IGame, Logger {
     this.chatData.messages.push(chatMessage);
     this.chatData.lastMessageId = messageId;
     
-    // Keep only last 100 messages to prevent memory bloat
-    if (this.chatData.messages.length > 100) {
-      this.chatData.messages = this.chatData.messages.slice(-100);
+    // Keep only last 200 messages to prevent memory bloat; matches client MAX_MESSAGES
+    if (this.chatData.messages.length > 200) {
+      this.chatData.messages = this.chatData.messages.slice(-200);
     }
     
     this.save();

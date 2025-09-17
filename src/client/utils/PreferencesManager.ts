@@ -28,6 +28,11 @@ export type Preferences = {
   chat_visible: boolean,
   board_scale: number,
   other_player_group_modes: {[key: string]: string},
+  other_player_active_filters: {[key: string]: string},
+  help_current_page: string,
+  language_panel_open: boolean,
+  preferences_panel_open: boolean,
+  sidebar_global_params_open: boolean,
 }
 
 export type Preference = keyof Preferences;
@@ -76,6 +81,11 @@ const defaults: Preferences = {
     event: 'hidden',
     self_replicating: 'stacked',
   },
+  other_player_active_filters: {},
+  help_current_page: 'iconology',
+  language_panel_open: false,
+  preferences_panel_open: false,
+  sidebar_global_params_open: false,
 };
 
 export class PreferencesManager {
@@ -107,6 +117,16 @@ export class PreferencesManager {
       this._values.board_scale = typeof(val) === 'number' ? val : parseFloat(String(val));
     } else if (key === 'other_player_group_modes') {
       this._values.other_player_group_modes = typeof(val) === 'object' ? val as {[key: string]: string} : JSON.parse(String(val));
+    } else if (key === 'other_player_active_filters') {
+      this._values.other_player_active_filters = typeof(val) === 'object' ? val as {[key: string]: string} : JSON.parse(String(val));
+    } else if (key === 'help_current_page') {
+      this._values.help_current_page = String(val);
+    } else if (key === 'language_panel_open') {
+      this._values.language_panel_open = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
+    } else if (key === 'preferences_panel_open') {
+      this._values.preferences_panel_open = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
+    } else if (key === 'sidebar_global_params_open') {
+      this._values.sidebar_global_params_open = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
     } else if (key === 'chat_visible') {
       this._values.chat_visible = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
     } else {
@@ -133,6 +153,16 @@ export class PreferencesManager {
         localStorage.setItem(name, String(this._values.board_scale));
       } else if (name === 'other_player_group_modes') {
         localStorage.setItem(name, JSON.stringify(this._values.other_player_group_modes));
+      } else if (name === 'other_player_active_filters') {
+        localStorage.setItem(name, JSON.stringify(this._values.other_player_active_filters));
+      } else if (name === 'help_current_page') {
+        localStorage.setItem(name, this._values.help_current_page);
+      } else if (name === 'language_panel_open') {
+        localStorage.setItem(name, this._values.language_panel_open ? '1' : '0');
+      } else if (name === 'preferences_panel_open') {
+        localStorage.setItem(name, this._values.preferences_panel_open ? '1' : '0');
+      } else if (name === 'sidebar_global_params_open') {
+        localStorage.setItem(name, this._values.sidebar_global_params_open ? '1' : '0');
       } else if (name === 'chat_visible') {
         localStorage.setItem(name, this._values.chat_visible ? '1' : '0');
       } else {

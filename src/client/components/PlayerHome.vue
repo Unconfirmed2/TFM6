@@ -154,12 +154,18 @@
         <!-- CHAT SECTION -->
         <div v-else-if="sectionId === 6" class="player_home_block">
           <a name="chat" class="player_home_anchor"></a>
-            <chat-component 
-              v-show="chatVisible"
-              :playerView="playerView"
-              :players="playerView.players"
-              @new-message="onNewMessage">
-            </chat-component>
+            <!-- Keep the chat component instance alive so it doesn't unmount/remount when
+                 the PlayerHome re-renders or the chat section is toggled. Use a stable key
+                 based on game id + player id so each player/game has its own cached instance. -->
+            <keep-alive>
+              <chat-component 
+                v-show="chatVisible"
+                :key="`${game.id || 'game'}-${playerView.id}`"
+                :playerView="playerView"
+                :players="playerView.players"
+                @new-message="onNewMessage">
+              </chat-component>
+            </keep-alive>
         </div>
 
 

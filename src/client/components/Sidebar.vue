@@ -158,6 +158,7 @@ export default Vue.extend({
     LanguageIcon,
   },
   data() {
+    const pm = PreferencesManager.INSTANCE.values();
     return {
       'ui': {
         'gamesetup_detail_open': false,
@@ -165,7 +166,7 @@ export default Vue.extend({
       'globalParameter': GlobalParameter,
       'draggedSection': null as number | null,
       'dragOverSection': null as number | null,
-      'globalParamsOpen': false,
+      'globalParamsOpen': (pm as any).sidebar_global_params_open || false,
     };
   },
   methods: {
@@ -264,6 +265,7 @@ export default Vue.extend({
     },
     toggleGlobalParams() {
       this.globalParamsOpen = !this.globalParamsOpen;
+      PreferencesManager.INSTANCE.set('sidebar_global_params_open', this.globalParamsOpen);
     },
   },
   computed: {

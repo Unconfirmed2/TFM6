@@ -55,8 +55,12 @@ export interface HelpPageModel {
 export default Vue.extend({
   name: 'Help',
   data(): HelpPageModel {
+    const prefs = (this as any).$root && (this as any).$root.$options && (this as any).$root.$options.preferencesManager ? (this as any).$root.$options.preferencesManager.values() : null;
+    // Fallback to PreferencesManager singleton if not available on root
+    const pm = prefs || (require('@/client/utils/PreferencesManager').PreferencesManager.INSTANCE.values());
+    const currentPage = (pm as any).help_current_page || 'iconology';
     return {
-      currentPage: 'iconology',
+      currentPage: currentPage as Tab,
     };
   },
   components: {
@@ -67,6 +71,10 @@ export default Vue.extend({
   methods: {
     setTab(tab: Tab): void {
       this.currentPage = tab;
+      const PreferencesManager = require('@/client/utils/PreferencesManager').PreferencesManager;
+      const prefs = (PreferencesManager as any).INSTANCE.values();
+      (prefs as any).help_current_page = tab;
+      PreferencesManager.INSTANCE.set('help_current_page', tab);
     },
     isOpen(tab: Tab): boolean {
       return tab === this.currentPage;

@@ -3,9 +3,9 @@
     <div
       class="sidebar_icon sidebar_icon--language"
       :class="{'sidebar_item--is-active': languagePanelOpen}">
-      <div :class="`language-icon language-icon-for-sidebar language-icon--${lang}`"
-      :title="title"
-      v-on:click="languagePanelOpen = !languagePanelOpen"/>
+  <div :class="`language-icon language-icon-for-sidebar language-icon--${lang}`"
+  :title="title"
+  v-on:click="toggleLanguagePanel"/>
       </div>
     <language-selection-dialog v-show="languagePanelOpen" :preferencesManager="preferencesManager"/>
   </div>
@@ -24,8 +24,9 @@ export default Vue.extend({
     'language-selection-dialog': LanguageSelectionDialog,
   },
   data() {
+    const pm = require('@/client/utils/PreferencesManager').PreferencesManager.INSTANCE.values();
     return {
-      languagePanelOpen: false,
+      languagePanelOpen: (pm as any).language_panel_open || false,
     };
   },
   computed: {
@@ -38,6 +39,13 @@ export default Vue.extend({
     title(): string {
       const lang = LANGUAGES[this.lang];
       return `${lang[0]} (${lang[1]})`;
+    },
+  },
+  methods: {
+    toggleLanguagePanel() {
+      this.languagePanelOpen = !this.languagePanelOpen;
+      const PreferencesManager = require('@/client/utils/PreferencesManager').PreferencesManager;
+      PreferencesManager.INSTANCE.set('language_panel_open', this.languagePanelOpen);
     },
   },
 });

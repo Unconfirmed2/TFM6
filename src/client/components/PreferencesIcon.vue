@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar_item sidebar_item--settings" :title="$t('Player Settings')">
-    <i class="sidebar_icon sidebar_icon--settings" :class="{'sidebar_item--is-active': preferencesPanelOpen}" v-on:click="preferencesPanelOpen = !preferencesPanelOpen"></i>
-    <preferences-dialog v-show="preferencesPanelOpen" @okButtonClicked="preferencesPanelOpen = false" :preferencesManager="preferencesManager"/>
+  <i class="sidebar_icon sidebar_icon--settings" :class="{'sidebar_item--is-active': preferencesPanelOpen}" v-on:click="togglePreferencesPanel"></i>
+  <preferences-dialog v-show="preferencesPanelOpen" @okButtonClicked="closePreferencesPanel" :preferencesManager="preferencesManager"/>
   </div>
 </template>
 
@@ -17,13 +17,24 @@ export default Vue.extend({
     'preferences-dialog': PreferencesDialog,
   },
   data() {
+    const pm = require('@/client/utils/PreferencesManager').PreferencesManager.INSTANCE.values();
     return {
-      preferencesPanelOpen: false,
+      preferencesPanelOpen: (pm as any).preferences_panel_open || false,
     };
   },
   computed: {
     preferencesManager(): PreferencesManager {
       return PreferencesManager.INSTANCE;
+    },
+  },
+  methods: {
+    togglePreferencesPanel() {
+      this.preferencesPanelOpen = !this.preferencesPanelOpen;
+      PreferencesManager.INSTANCE.set('preferences_panel_open', this.preferencesPanelOpen);
+    },
+    closePreferencesPanel() {
+      this.preferencesPanelOpen = false;
+      PreferencesManager.INSTANCE.set('preferences_panel_open', false);
     },
   },
 });

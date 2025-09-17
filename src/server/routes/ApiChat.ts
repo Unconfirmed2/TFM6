@@ -44,6 +44,8 @@ export class ApiChat extends Handler {
       responses.writeJson(res, ctx, {
         messages,
         lastMessageId: game.chatData.lastMessageId,
+        totalMessages: game.chatData.messages.length,
+        maxMessages: 200,
       });
     } catch (err) {
       console.warn(`unable to find player ${playerId}`, err);

@@ -66,6 +66,8 @@ type DataModel = {
   lastMessageId: string;
 };
 
+const MAX_MESSAGES = 200;
+
 export default Vue.extend({
   name: 'ChatComponent',
   components: {
@@ -82,6 +84,8 @@ export default Vue.extend({
     },
   },
   data(): DataModel {
+    // Hydration will be done in created() where we reliably have access to props
+    // (playerView). Return defaults here; created() will override if persisted state exists.
     return {
       messages: [],
       newMessage: '',
@@ -95,6 +99,12 @@ export default Vue.extend({
     },
   },
   methods: {
+    storageKey(): string {
+      // Use explicit game id + player id to make the key unique per game+player
+      const gameId = (this.playerView && this.playerView.game && (this.playerView.game as any).id) ? (this.playerView.game as any).id : 'nogame';
+      const playerId = this.playerView ? this.playerView.id : 'noplayer';
+      return `chat-${gameId}-${playerId}`;
+    },
     async loadMessages() {
       try {
         const url = paths.API_CHAT + '?id=' + this.playerView.id + 
@@ -106,8 +116,19 @@ export default Vue.extend({
           
           if (data.messages && data.messages.length > 0) {
             const hasNewMessages = data.messages.some((msg: ChatMessage) => msg.playerId !== this.playerView.id);
-            this.messages.push(...data.messages);
-            this.lastMessageId = data.lastMessageId;
+            // Append new messages but avoid duplicating messages already present
+            const existingIds = new Set(this.messages.map(m => m.id));
+            const newOnes = data.messages.filter((m: ChatMessage) => !existingIds.has(m.id));
+            if (newOnes.length > 0) {
+              this.messages.push(...newOnes);
+              // Trim to most recent MAX_MESSAGES
+              if (this.messages.length > MAX_MESSAGES) {
+                this.messages = this.messages.slice(this.messages.length - MAX_MESSAGES);
+              }
+            }
+            this.lastMessageId = data.lastMessageId || this.lastMessageId;
+            // Persist updated state (trimmed)
+            this.persistState();
             if (hasNewMessages) {
               this.$emit('new-message');
             }
@@ -139,7 +160,9 @@ export default Vue.extend({
         
         if (response.ok) {
           this.newMessage = '';
-          this.loadMessages();
+          this.persistState();
+          // Immediately reload to include our message
+          await this.loadMessages();
         } else {
           const error = await response.text();
           console.error('Failed to send message:', error);
@@ -173,19 +196,81 @@ export default Vue.extend({
     checkForUpdates() {
       this.loadMessages();
     },
+    persistState() {
+      try {
+        const key = this.storageKey();
+        const toSave: Partial<DataModel> = {
+          // Save only the most recent MAX_MESSAGES to avoid unbounded localStorage growth
+          messages: (this.messages || []).slice(Math.max(0, (this.messages || []).length - MAX_MESSAGES)),
+          newMessage: this.newMessage,
+          lastMessageId: this.lastMessageId,
+        };
+        localStorage.setItem(key, JSON.stringify(toSave));
+      } catch (e) {
+        // ignore persistence errors
+      }
+    },
+    loadPersistedState() {
+      try {
+        const key = this.storageKey();
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const persisted = JSON.parse(raw) as Partial<DataModel>;
+          if (persisted.messages && persisted.messages.length > 0) {
+            this.messages = persisted.messages.slice(Math.max(0, persisted.messages.length - MAX_MESSAGES));
+          }
+          if (typeof persisted.newMessage === 'string') this.newMessage = persisted.newMessage;
+          if (typeof persisted.lastMessageId === 'string') this.lastMessageId = persisted.lastMessageId;
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+    },
+    startPolling() {
+      // Immediately load messages once and then poll on an interval.
+      try {
+        // load once immediately
+        this.loadMessages();
+        // avoid creating multiple intervals
+        if ((this as any)._chatInterval) {
+          clearInterval((this as any)._chatInterval);
+        }
+        (this as any)._chatInterval = setInterval(() => {
+          this.checkForUpdates();
+        }, 3000);
+      } catch (e) {
+        // ignore
+      }
+    },
+    stopPolling() {
+      try {
+        if ((this as any)._chatInterval) {
+          clearInterval((this as any)._chatInterval);
+          (this as any)._chatInterval = undefined;
+        }
+      } catch (e) {
+        // ignore
+      }
+    },
   },
   mounted() {
-    this.loadMessages();
-    
-    // Set up auto-refresh for chat messages every 3 seconds
-    const interval = setInterval(() => {
-      this.checkForUpdates();
-    }, 3000);
-    
-    // Clean up interval on component destroy
-    this.$once('hook:beforeDestroy', () => {
-      clearInterval(interval);
-    });
+    // For normal mount (non-cached), ensure polling is started.
+    this.startPolling();
+  },
+  created() {
+    // Hydrate persisted state now that props are available
+    this.loadPersistedState();
+  },
+  activated() {
+    // Called when keep-alive activates the component instance.
+    this.startPolling();
+  },
+  deactivated() {
+    // Called when keep-alive deactivates the component instance.
+    this.stopPolling();
+  },
+  beforeDestroy() {
+    this.stopPolling();
   },
 });
 </script>

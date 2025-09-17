@@ -1,15 +1,17 @@
 <template>
         <div class="players-overview" v-if="hasPlayers()">
             <overview-settings />
-            <div v-for="(p, index) in getPlayersInOrder()" :key="p.color">
-              <player-info
-                :player="p"
-                :playerView="playerView"
-                :firstForGen="getIsFirstForGen(p)"
-                :actionLabel="getActionLabel(p)"
-                :playerIndex="index"/>
-              <other-player :player="p" :playerIndex="index" />
-            </div>
+            <div v-for="(p, index) in getPlayersInOrder()" :key="p.id || p.color">
+                  <player-info
+                    :player="p"
+                    :playerView="playerView"
+                    :firstForGen="getIsFirstForGen(p)"
+                    :actionLabel="getActionLabel(p)"
+                    :playerIndex="index"/>
+                  <keep-alive>
+                    <other-player :player="p" :playerIndex="index" />
+                  </keep-alive>
+                </div>
         </div>
 </template>
 
