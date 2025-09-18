@@ -5,8 +5,8 @@
     <div class="gen-marker">{{ getGenMarker() }}</div>
   </div>
 
-  <!-- Chat icon placed first in the sidebar (hidden when right_chat_log is enabled) -->
-  <div v-if="!getPreferences().right_chat_log" class="sidebar_item sidebar_item_shortcut draggable-section" :title="getSectionTitle(6)"
+  <!-- Chat icon placed first in the sidebar -->
+  <div class="sidebar_item sidebar_item_shortcut draggable-section" :title="getSectionTitle(6)"
        @click.prevent="toggleChat" draggable="false" role="button" :aria-pressed="chatVisible.toString()">
     <i class="sidebar_icon sidebar_icon--chat"></i>
     <div v-if="!chatVisible && unreadMessageCount > 0" class="unread-badge">
@@ -29,7 +29,7 @@
   
   <!-- Dynamic sidebar icons based on section order -->
   <template v-for="sectionId in sectionOrder" :key="sectionId">
-    <template v-if="shouldShowSection(sectionId) && sectionId !== 6 && !(getPreferences().right_chat_log && sectionId === 5)">
+    <template v-if="shouldShowSection(sectionId) && sectionId !== 6">
       <a :href="getSectionHref(sectionId)" :title="getSectionTitle(sectionId)">
         <div class="sidebar_item sidebar_item_shortcut draggable-section"
              :class="{ 'goto-cards': sectionId === 3 }"
@@ -44,7 +44,7 @@
           </i>
         </div>
       </a>
-  </template>
+    </template>
   </template>
 
   <!-- Bottom icons container -->
@@ -261,6 +261,14 @@ export default Vue.extend({
     shouldShowSection(sectionId: number): boolean {
       // Colonies only show if colonies exist
       if (sectionId === 4) return this.coloniesCount > 0;
+      // If the user prefers the right chat/log, hide the in-place log icon (section 5)
+      if (sectionId === 5) {
+        try {
+          if (getPreferences().right_chat_log) return false;
+        } catch (e) {
+          // ignore and fallthrough
+        }
+      }
       return true;
     },
     toggleGlobalParams() {

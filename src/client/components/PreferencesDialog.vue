@@ -86,6 +86,15 @@
 
       <div class="preferences_panel_item">
         <label class="form-switch">
+          <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.right_chat_log" data-test="right_chat_log">
+          <i class="form-icon"></i>
+          <span v-i18n>Right Chat/Log</span>
+          <span class="tooltip tooltip-left" :data-tooltip="$t('When enabled, hide the in-place chat and log and show the right dock for chat and log instead.')">&#9432;</span>
+        </label>
+      </div>
+
+      <div class="preferences_panel_item">
+        <label class="form-switch">
           <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.experimental_ui" data-test="experimental_ui">
           <i class="form-icon"></i>
           <span v-i18n>Experimental UI</span>
@@ -98,14 +107,6 @@
           <i class="form-icon"></i>
           <span v-i18n>Debug View</span>
           <span class="tooltip tooltip-left" :data-tooltip="$t('Add information useful for development and debugging.')">&#9432;</span>
-        </label>
-      </div>
-
-      <div class="preferences_panel_item">
-        <label class="form-switch">
-          <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.right_chat_log" data-test="right_chat_log">
-          <i class="form-icon"></i> <span v-i18n>Right Chat/Log</span>
-          <span class="tooltip tooltip-left" :data-tooltip="$t('Dock chat and log to the right sidepanel and hide in-place panels')">&#9432;</span>
         </label>
       </div>
 

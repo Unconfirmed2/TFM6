@@ -21,7 +21,6 @@ export type Preferences = {
   debug_view: boolean,
   symbol_overlay: boolean,
   experimental_ui: boolean,
-  right_chat_log: boolean,
   lang: string,
   section_order: number[],
   
@@ -34,6 +33,8 @@ export type Preferences = {
   language_panel_open: boolean,
   preferences_panel_open: boolean,
   sidebar_global_params_open: boolean,
+  // When true use the right dock for chat/log, hiding the in-place chat and log
+  right_chat_log: boolean,
 }
 
 export type Preference = keyof Preferences;
@@ -67,7 +68,6 @@ const defaults: Preferences = {
 
   experimental_ui: false,
   debug_view: false,
-  right_chat_log: false,
   section_order: [1, 2, 3, 4, 5], // Board, Actions, Cards, Colonies, Log
   
   // UI state that should persist across component remounting
@@ -88,6 +88,8 @@ const defaults: Preferences = {
   language_panel_open: false,
   preferences_panel_open: false,
   sidebar_global_params_open: false,
+  // Default: keep legacy behaviour (in-place chat/log)
+  right_chat_log: false,
 };
 
 export class PreferencesManager {
@@ -167,9 +169,17 @@ export class PreferencesManager {
         localStorage.setItem(name, this._values.sidebar_global_params_open ? '1' : '0');
       } else if (name === 'chat_visible') {
         localStorage.setItem(name, this._values.chat_visible ? '1' : '0');
+      } else if (name === 'right_chat_log') {
+        localStorage.setItem(name, this._values.right_chat_log ? '1' : '0');
       } else {
         localStorage.setItem(name, val ? '1' : '0');
       }
+    }
+    // Notify in-page listeners about preference changes (non-persisted clients can subscribe)
+    try {
+      window.dispatchEvent(new CustomEvent('preferences-changed', { detail: { name, value: this._values[name] } }));
+    } catch (e) {
+      // ignore if window is not available
     }
   }
 }

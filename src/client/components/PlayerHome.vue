@@ -1,5 +1,5 @@
 <template>
-  <div id="player-home" :class="(game.turmoil ? 'with-turmoil': '')">
+  <div id="player-home" :class="[(game.turmoil ? 'with-turmoil': ''), (chatVisible ? 'with-dock' : '')]">
   <player-info-top-container :playerView="playerView" />
 
     <div v-if="game.phase === 'end'">
@@ -142,8 +142,8 @@
           </div>
         </div>
 
-        <!-- LOG SECTION -->
-        <div v-else-if="sectionId === 5" class="player_home_block nofloat">
+  <!-- LOG SECTION -->
+  <div v-else-if="sectionId === 5 && !useRightDock" class="player_home_block nofloat">
           <a name="log" class="player_home_anchor"></a>
           <log-panel
             :id="playerView.id"
@@ -154,8 +154,8 @@
             :step="game.step"></log-panel>
         </div>
 
-        <!-- CHAT SECTION -->
-        <div v-else-if="sectionId === 6" class="player_home_block">
+  <!-- CHAT SECTION -->
+  <div v-else-if="sectionId === 6 && !useRightDock" class="player_home_block">
           <a name="chat" class="player_home_anchor"></a>
             <!-- Keep the chat component instance alive so it doesn't unmount/remount when
                  the PlayerHome re-renders or the chat section is toggled. Use a stable key
@@ -177,19 +177,19 @@
 
       </div>
 
-    <fixed-dock-host>
-      <div class="docked-sidepanel">
-        <chat-panel :playerView="playerView" :players="playerView.players" @new-message="onNewMessage" />
-        <docked-log-panel
-          :id="playerView.id"
-          :players="playerView.players"
-          :generation="game.generation"
-          :lastSoloGeneration="game.lastSoloGeneration"
-          :color="thisPlayer.color"
-          :step="game.step"
-        />
-      </div>
-    </fixed-dock-host>
+    </div>
+
+  <!-- Fixed dock on top right -->
+  <div v-if="useRightDock && chatVisible" class="docked-sidepanel">
+      <chat-panel :playerView="playerView" :players="playerView.players" @new-message="onNewMessage" />
+      <docked-log-panel
+        :id="playerView.id"
+        :players="playerView.players"
+        :generation="game.generation"
+        :lastSoloGeneration="game.lastSoloGeneration"
+        :color="thisPlayer.color"
+        :step="game.step"
+      />
     </div>
 
     <!-- Underground tokens (always at bottom) -->
@@ -322,7 +322,6 @@ import UndergroundTokens from '@/client/components/underworld/UndergroundTokens.
 import ChatComponent from '@/client/components/ChatComponent.vue';
 import DockedChatPanel from '@/client/components/docked/ChatPanel.vue';
 import DockedLogPanel from '@/client/components/docked/DockedLogPanel.vue';
-import FixedDockHost from '@/client/components/docked/FixedDockHost.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
 import {KeyboardNavigation} from '@/client/components/KeyboardNavigation';
@@ -346,6 +345,7 @@ export interface PlayerHomeModel {
   sectionOrder: number[];
   chatVisible: boolean;
   unreadMessageCount: number;
+  useRightDock: boolean;
 }
 
 class TerraformedAlertDialog {
@@ -368,6 +368,7 @@ export default Vue.extend({
       sectionOrder: [1, 2, 3, 4, 5, 6], // Default order: Board, Actions, Cards, Colonies, Log, Chat
       chatVisible: preferences.chat_visible,
       unreadMessageCount: 0,
+      useRightDock: (preferences as any).right_chat_log === true,
     };
   },
   watch: {
@@ -427,6 +428,8 @@ export default Vue.extend({
       };
     },
 
+    // ...existing computed properties
+
   },
 
   components: {
@@ -451,7 +454,6 @@ export default Vue.extend({
     'chat-component': ChatComponent,
     'chat-panel': DockedChatPanel,
     'docked-log-panel': DockedLogPanel,
-    'fixed-dock-host': FixedDockHost,
   },
   methods: {
     navigatePage(event: KeyboardEvent) {
@@ -646,6 +648,15 @@ export default Vue.extend({
     // Load section order from storage
     this.sectionOrder = SectionOrderStorage.getSectionOrder(this.playerView.id);
 
+    // Set up viewport height for dock sizing
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    (this as any)._setVh = setVh;
+
     // initialize board size and listeners for scaling
     this.$nextTick(() => {
       const ma: any = (this as any).$refs.boardMa;
@@ -676,6 +687,18 @@ export default Vue.extend({
         this.updateBoardWrapperSize();
       }
       window.addEventListener('resize', this.updateBoardWrapperSize);
+      // Listen for preference changes so UI updates reactively
+      (this as any)._onPreferencesChanged = (e: any) => {
+        try {
+          const name = e && e.detail && e.detail.name;
+          if (name === 'right_chat_log') {
+            this.useRightDock = getPreferences().right_chat_log === true;
+          }
+        } catch (err) {
+          // ignore
+        }
+      };
+      window.addEventListener('preferences-changed', (this as any)._onPreferencesChanged);
     });
     if (this.game.isTerraformed && TerraformedAlertDialog.shouldAlert && getPreferences().show_alerts) {
       alert('Mars is Terraformed!');
@@ -685,6 +708,14 @@ export default Vue.extend({
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.updateBoardWrapperSize);
+    if ((this as any)._setVh) {
+      window.removeEventListener('resize', (this as any)._setVh);
+      (this as any)._setVh = undefined;
+    }
+    if ((this as any)._onPreferencesChanged) {
+      window.removeEventListener('preferences-changed', (this as any)._onPreferencesChanged);
+      (this as any)._onPreferencesChanged = undefined;
+    }
   },
 });
 
@@ -701,6 +732,7 @@ export default Vue.extend({
 }
 .player_home_block { margin-bottom: 12px; }
 #player-home { padding-bottom: calc(env(safe-area-inset-bottom, 12px) + 312px); }
+#player-home.with-dock { padding-right: 20%; /* reserve space for right dock, similar to left sidebar */ }
 .player_home_block.player_home_block--actions {
   /* Ensure the actions area (where buttons live) sits above the board */
   position: relative;
@@ -711,9 +743,26 @@ export default Vue.extend({
 .board-scale-value { font-weight:600; }
 .btn-small { padding:4px 8px; font-size:14px; }
 /* Layout for main content with docked right sidepanel */
-.player-main-layout { display: flex; gap: 12px; align-items: flex-start; }
-.player-main-flex { flex: 1 1 auto; min-width: 0; /* reserve space so fixed dock doesn't cover content */ margin-right: 15%; }
-.docked-sidepanel { position: fixed; top: 0; right: 0; width: 20%; height: 100vh; box-sizing: border-box; padding: 0; overflow: hidden; z-index: 1200; display: flex; flex-direction: column; gap: 0; background-color: #000; color: #ddd; }
+.player-main-layout { display: flex; width: 100%; align-items: flex-start; }
+.player-main-flex { flex: 1 1 auto; min-width: 0; }
+
+/* Fixed dock on top right - full viewport height */
+.docked-sidepanel { 
+  position: fixed; 
+  top: 0; 
+  right: 0; 
+  width: 20%; 
+  height: 100vh; 
+  box-sizing: border-box; 
+  padding: 0; 
+  overflow: hidden; 
+  z-index: 1200; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0; 
+  background-color: #000; 
+  color: #ddd; 
+}
 
 /* Ensure duplicated chat/log appear inside the dock instead of fixed to viewport */
 .docked-sidepanel .chat-container {
@@ -727,9 +776,7 @@ export default Vue.extend({
   /* use available dock height: 75% of dock */
   /* use --vh set by JS for accurate viewport height (handles zoom/mobile UI) */
   height: calc(var(--vh, 1vh) * 100 * 0.75) !important;
-  /* allow flex children to size properly and avoid clipping */
-  max-height: none !important;
-  min-height: 0 !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.75) !important;
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
@@ -737,10 +784,8 @@ export default Vue.extend({
 
 /* Make messages area take available space and be scrollable; pin input to bottom */
 .docked-sidepanel .chat-messages {
-  /* ensure the scrollable messages area can grow/shrink inside flex containers */
   flex: 1 1 auto !important;
   min-height: 0 !important; /* allow proper flexbox scrolling */
-  max-height: none !important;
   overflow-y: auto !important;
   padding: 8px !important;
 }

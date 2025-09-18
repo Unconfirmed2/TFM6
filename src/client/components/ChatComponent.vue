@@ -285,7 +285,7 @@ export default Vue.extend({
   bottom: env(safe-area-inset-bottom, 12px);
   left: 70px;
   right: 12px;
-  z-index: 1100;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   height: 300px;
@@ -455,15 +455,12 @@ export default Vue.extend({
   right: auto !important;
   box-shadow: none !important;
   border-radius: 0 !important;
-  /* ensure outer chat container doesn't constrain flex children inside the dock */
-  min-height: 0 !important;
 }
 
 .docked-sidepanel .chat-messages {
   padding: 6px !important;
   background-color: transparent !important;
   overflow-y: auto !important;
-  max-height: none !important;
 }
 
 .docked-sidepanel .chat-input-container {
