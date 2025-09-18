@@ -1,5 +1,5 @@
 <template>
-  <div id="player-home" :class="[(game.turmoil ? 'with-turmoil': ''), (chatVisible ? 'with-dock' : '')]">
+  <div id="player-home" :class="[(game.turmoil ? 'with-turmoil': ''), (useRightDock && chatVisible ? 'with-dock' : '')]">
   <player-info-top-container :playerView="playerView" />
 
     <div v-if="game.phase === 'end'">
