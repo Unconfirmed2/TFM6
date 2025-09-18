@@ -162,6 +162,7 @@
                  based on game id + player id so each player/game has its own cached instance. -->
             <keep-alive>
               <chat-component 
+                ref="inplaceChat"
                 v-show="chatVisible"
                 :key="`${game.id || 'game'}-${playerView.id}`"
                 :playerView="playerView"
@@ -181,7 +182,7 @@
 
   <!-- Fixed dock on top right -->
   <div v-if="useRightDock && chatVisible" class="docked-sidepanel">
-      <chat-panel :playerView="playerView" :players="playerView.players" @new-message="onNewMessage" />
+    <chat-panel ref="dockedChatPanel" :playerView="playerView" :players="playerView.players" @new-message="onNewMessage" />
       <docked-log-panel
         :id="playerView.id"
         :players="playerView.players"
@@ -388,6 +389,22 @@ export default Vue.extend({
       PreferencesManager.INSTANCE.set('chat_visible', this.chatVisible);
       if (this.chatVisible) {
         this.unreadMessageCount = 0;
+        // Scroll the chat to bottom when opened
+        this.$nextTick(() => {
+          try {
+            const inPlace: any = (this as any).$refs.inplaceChat;
+            if (inPlace && typeof inPlace.scrollToBottomPublic === 'function' && this.useRightDock === false) {
+              inPlace.scrollToBottomPublic();
+              return;
+            }
+            const docked: any = (this as any).$refs.dockedChatPanel;
+            if (docked && typeof docked.scrollToBottom === 'function') {
+              docked.scrollToBottom();
+            }
+          } catch (e) {
+            // ignore
+          }
+        });
       }
     },
     boardScale: function save_board_scale() {
@@ -630,10 +647,31 @@ export default Vue.extend({
       SectionOrderStorage.updateSectionOrder(this.playerView.id, currentOrder);
     },
     onNewMessage(): void {
+      // When chat is not visible, increment unread counter
       if (!this.chatVisible) {
         this.unreadMessageCount++;
+        return;
       }
+      // If chat is visible, scroll the visible chat instance to bottom
+      this.$nextTick(() => {
+        try {
+          // Prioritize in-place chat if present and visible
+          const inPlace: any = (this as any).$refs.inplaceChat;
+          if (inPlace && typeof inPlace.scrollToBottomPublic === 'function' && this.useRightDock === false) {
+            inPlace.scrollToBottomPublic();
+            return;
+          }
+          // If using docked chat, call its wrapper's method
+          const docked: any = (this as any).$refs.dockedChatPanel;
+          if (docked && typeof docked.scrollToBottom === 'function') {
+            docked.scrollToBottom();
+          }
+        } catch (e) {
+          // ignore
+        }
+      });
     },
+
 
   },
   created() {

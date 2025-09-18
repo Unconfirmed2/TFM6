@@ -1,7 +1,7 @@
 <template>
   <div class="docked-chat-panel">
-    <!-- Render a fresh ChatComponent instance so this is a true duplication -->
-    <chat-component :playerView="playerView" :players="players" @new-message="$emit('new-message')" />
+  <!-- Render a fresh ChatComponent instance so this is a true duplication -->
+  <chat-component ref="innerChat" :playerView="playerView" :players="players" @new-message="$emit('new-message')" />
   </div>
 </template>
 
@@ -16,6 +16,16 @@ export default Vue.extend({
     playerView: { type: Object, required: true },
     players: { type: Array, required: true },
   },
+  methods: {
+    scrollToBottom() {
+      try {
+        const c: any = (this as any).$refs.innerChat;
+        if (c && typeof c.scrollToBottom === 'function') c.scrollToBottom();
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
 });
 </script>
 

@@ -1,16 +1,20 @@
 <template>
   <div :class="['player-info-top-container', { 'player-info-top-container--sticky': isHeaderSticky }]">
-    <PlayerInfoTopDuplicate
+    <div
       v-for="(p, idx) in getPlayersInOrder()"
       :key="p.color + '-' + idx"
-      :player="p"
-      :playerView="playerView"
-      :playerIndex="idx"
-      :hideZeroTags="false"
-      :isTopBar="true"
-      :firstForGen="getIsFirstForGen(p)"
-      :actionLabel="getActionLabel(p)"
-    />
+      class="player-info-item"
+    >
+      <PlayerInfoTopDuplicate
+        :player="p"
+        :playerView="playerView"
+        :playerIndex="idx"
+        :hideZeroTags="false"
+        :isTopBar="true"
+        :firstForGen="getIsFirstForGen(p)"
+        :actionLabel="getActionLabel(p)"
+      />
+    </div>
   </div>
 </template>
 
@@ -129,13 +133,25 @@ export default Vue.extend({
   z-index: 20;
 }
 
+/* Wrapper with fixed dimensions for the player info area */
+/* Each player gets its own fixed-size container */
+.player-info-item {
+  width: 660px;
+  height: 160px;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding:5px;
+}
 /* Make each player-info card a vertical column so tags sit below status */
+.player-info-item .player-info,
 .player-info-top-container > .player-info {
-  display: flex;
+  display: inline-flex;
   position: relative; /* create containing block for absolutely positioned badge */
   flex-direction: column;
   align-items: stretch;
-  min-width: 220px;
+  /* Visually scale player info to 75% and adjust layout min-width accordingly */
+  transform: scale(0.75);
+  transform-origin: top left;
 }
 
 /* Ensure tags are full width on their own row */

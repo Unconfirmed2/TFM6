@@ -4,6 +4,7 @@
     <DynamicTitle title="Chat" :color="thisPlayer.color"/>
     
     <div class="chat-container">
+      <div class="chat-resize-handle" ref="chatResizeHandle" title="Drag to resize chat"></div>
       <div class="chat-messages" ref="chatMessages">
         <div 
           v-for="message in messages" 
@@ -92,6 +93,12 @@ export default Vue.extend({
       isLoading: false,
       lastMessageId: '',
     };
+  },
+  mounted() {
+    // Attach resize handle behavior after mount and start polling
+    this.loadPersistedState();
+    this.attachResizeHandle();
+    this.startPolling();
   },
   computed: {
     thisPlayer() {
@@ -182,6 +189,10 @@ export default Vue.extend({
         messagesEl.scrollTop = messagesEl.scrollHeight;
       }
     },
+    // Public wrapper so parent components can call scrollToBottom
+    scrollToBottomPublic() {
+      this.scrollToBottom();
+    },
     formatTime(timestamp: number): string {
       const date = new Date(timestamp);
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -209,6 +220,15 @@ export default Vue.extend({
       } catch (e) {
         // ignore persistence errors
       }
+      // persist chat height preference to the global preference manager
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const pm = require('@/client/utils/PreferencesManager').PreferencesManager.INSTANCE;
+        const height = (this.$el as HTMLElement).querySelector('.chat-container') ? parseInt(getComputedStyle((this.$el as HTMLElement).querySelector('.chat-container') as HTMLElement).height, 10) : 300;
+        pm.set('chat_height', height);
+      } catch (e) {
+        // ignore
+      }
     },
     loadPersistedState() {
       try {
@@ -224,6 +244,87 @@ export default Vue.extend({
         }
       } catch (e) {
         // ignore parse errors
+      }
+    },
+
+    attachResizeHandle() {
+      try {
+        const handle = this.$refs.chatResizeHandle as HTMLElement;
+        const container = (this.$el as HTMLElement).querySelector('.chat-container') as HTMLElement;
+        if (!handle || !container) return;
+
+        let startY = 0;
+        let startHeight = container.offsetHeight;
+
+        const onMouseMove = (ev: MouseEvent) => {
+          const dy = ev.clientY - startY;
+          const newHeight = Math.max(120, startHeight - dy);
+          container.style.height = newHeight + 'px';
+          container.style.maxHeight = newHeight + 'px';
+          const messages = container.querySelector('.chat-messages') as HTMLElement;
+          if (messages) {
+            messages.style.maxHeight = `calc(${newHeight}px - 64px)`;
+          }
+        };
+
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          // Persist preference
+          try {
+            const pm = require('@/client/utils/PreferencesManager').PreferencesManager.INSTANCE;
+            pm.set('chat_height', parseInt(container.style.height || '300', 10));
+          } catch (e) {
+            // ignore
+          }
+        };
+
+        handle.addEventListener('mousedown', (e: MouseEvent) => {
+          startY = e.clientY;
+          startHeight = container.offsetHeight;
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+
+        // touch support
+        handle.addEventListener('touchstart', (e: TouchEvent) => {
+          startY = e.touches[0].clientY;
+          startHeight = container.offsetHeight;
+          const onTouchMove = (tev: TouchEvent) => {
+            const dy = tev.touches[0].clientY - startY;
+            const newHeight = Math.max(120, startHeight - dy);
+            container.style.height = newHeight + 'px';
+            container.style.maxHeight = newHeight + 'px';
+            const messages = container.querySelector('.chat-messages') as HTMLElement;
+            if (messages) messages.style.maxHeight = `calc(${newHeight}px - 64px)`;
+          };
+          const onTouchEnd = () => {
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+            try {
+              const pm = require('@/client/utils/PreferencesManager').PreferencesManager.INSTANCE;
+              pm.set('chat_height', parseInt(container.style.height || '300', 10));
+            } catch (e) {}
+          };
+          document.addEventListener('touchmove', onTouchMove);
+          document.addEventListener('touchend', onTouchEnd);
+        });
+
+        // Apply persisted height from preferences if present
+        try {
+          const pm = require('@/client/utils/PreferencesManager').getPreferences();
+          if ((pm as any).chat_height) {
+            const h = (pm as any).chat_height;
+            container.style.height = h + 'px';
+            container.style.maxHeight = h + 'px';
+            const messages = container.querySelector('.chat-messages') as HTMLElement;
+            if (messages) messages.style.maxHeight = `calc(${h}px - 64px)`;
+          }
+        } catch (e) {
+          // ignore
+        }
+      } catch (e) {
+        // ignore attach failures
       }
     },
     startPolling() {
@@ -252,10 +353,6 @@ export default Vue.extend({
         // ignore
       }
     },
-  },
-  mounted() {
-    // For normal mount (non-cached), ensure polling is started.
-    this.startPolling();
   },
   created() {
     // Hydrate persisted state now that props are available
@@ -397,6 +494,12 @@ export default Vue.extend({
   color: #ddd;
   margin-right: 6px;
   font-size: 14px;
+}
+
+.chat-resize-handle {
+  height: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
+  cursor: ns-resize;
 }
 
 .chat-input:focus {

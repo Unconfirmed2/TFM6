@@ -35,6 +35,10 @@ export type Preferences = {
   sidebar_global_params_open: boolean,
   // When true use the right dock for chat/log, hiding the in-place chat and log
   right_chat_log: boolean,
+  // in-place chat height in pixels
+  chat_height: number,
+  // left sidebar width in pixels
+  sidebar_width: number,
 }
 
 export type Preference = keyof Preferences;
@@ -72,6 +76,8 @@ const defaults: Preferences = {
   
   // UI state that should persist across component remounting
   chat_visible: true,
+  // default in-place chat height (px)
+  chat_height: 300,
   board_scale: 1.0,
   other_player_group_modes: {
     corporation: 'grid',
@@ -90,6 +96,8 @@ const defaults: Preferences = {
   sidebar_global_params_open: false,
   // Default: keep legacy behaviour (in-place chat/log)
   right_chat_log: false,
+  // Default sidebar width (px)
+  sidebar_width: 60,
 };
 
 export class PreferencesManager {
@@ -133,6 +141,10 @@ export class PreferencesManager {
       this._values.sidebar_global_params_open = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
     } else if (key === 'chat_visible') {
       this._values.chat_visible = typeof(val) === 'boolean' ? val : (val === '1' || val === 'true');
+    } else if (key === 'chat_height') {
+      this._values.chat_height = typeof(val) === 'number' ? val : parseInt(String(val), 10);
+    } else if (key === 'sidebar_width') {
+      this._values.sidebar_width = typeof(val) === 'number' ? val : parseInt(String(val), 10);
     } else {
       (this._values as any)[key] = typeof(val) === 'boolean' ? val : (val === '1');
     }
@@ -169,6 +181,10 @@ export class PreferencesManager {
         localStorage.setItem(name, this._values.sidebar_global_params_open ? '1' : '0');
       } else if (name === 'chat_visible') {
         localStorage.setItem(name, this._values.chat_visible ? '1' : '0');
+      } else if (name === 'chat_height') {
+        localStorage.setItem(name, String(this._values.chat_height));
+      } else if (name === 'sidebar_width') {
+        localStorage.setItem(name, String(this._values.sidebar_width));
       } else if (name === 'right_chat_log') {
         localStorage.setItem(name, this._values.right_chat_log ? '1' : '0');
       } else {

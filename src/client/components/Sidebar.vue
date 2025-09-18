@@ -1,5 +1,5 @@
 <template>
-<div :class="'sidebar_cont sidebar '+getSideBarClass()">
+<div :class="'sidebar_cont sidebar '+getSideBarClass()" ref="sidebarContainer">
   <div class="tm" @click="toggleGlobalParams" :title="$t('Generation Marker (click for global parameters)')" style="cursor: pointer;">
     <div class="gen-text" v-i18n>GEN</div>
     <div class="gen-marker">{{ getGenMarker() }}</div>
@@ -167,6 +167,7 @@ export default Vue.extend({
       'draggedSection': null as number | null,
       'dragOverSection': null as number | null,
       'globalParamsOpen': (pm as any).sidebar_global_params_open || false,
+      'sidebarWidth': (pm as any).sidebar_width || 60,
     };
   },
   methods: {
@@ -275,11 +276,80 @@ export default Vue.extend({
       this.globalParamsOpen = !this.globalParamsOpen;
       PreferencesManager.INSTANCE.set('sidebar_global_params_open', this.globalParamsOpen);
     },
+    attachSidebarResize() {
+      try {
+        const container = this.$refs.sidebarContainer as HTMLElement;
+        if (!container) return;
+        // Apply persisted width
+        const pm = PreferencesManager.INSTANCE.values();
+        const w = (pm as any).sidebar_width || this.sidebarWidth || 60;
+        container.style.width = w + 'px';
+
+        // Create handle element
+        let handle = container.querySelector('.sidebar-resize-handle') as HTMLElement;
+        if (!handle) {
+          handle = document.createElement('div');
+          handle.className = 'sidebar-resize-handle';
+          container.appendChild(handle);
+        }
+
+        let startX = 0;
+        let startWidth = container.offsetWidth;
+
+        const onMouseMove = (ev: MouseEvent) => {
+          const dx = ev.clientX - startX;
+          const newWidth = Math.max(48, startWidth + dx);
+          container.style.width = newWidth + 'px';
+        };
+
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          // persist
+          try {
+            PreferencesManager.INSTANCE.set('sidebar_width', parseInt(container.style.width || '60', 10));
+          } catch (e) {}
+        };
+
+        handle.addEventListener('mousedown', (e: MouseEvent) => {
+          startX = e.clientX;
+          startWidth = container.offsetWidth;
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+          e.preventDefault();
+        });
+
+        // touch support
+        handle.addEventListener('touchstart', (e: TouchEvent) => {
+          startX = e.touches[0].clientX;
+          startWidth = container.offsetWidth;
+          const onTouchMove = (tev: TouchEvent) => {
+            const dx = tev.touches[0].clientX - startX;
+            const newWidth = Math.max(48, startWidth + dx);
+            container.style.width = newWidth + 'px';
+          };
+          const onTouchEnd = () => {
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+            try { PreferencesManager.INSTANCE.set('sidebar_width', parseInt(container.style.width || '60', 10)); } catch (e) {}
+          };
+          document.addEventListener('touchmove', onTouchMove);
+          document.addEventListener('touchend', onTouchEnd);
+          e.preventDefault();
+        });
+
+      } catch (e) {
+        // ignore
+      }
+    },
   },
   computed: {
     preferencesManager(): PreferencesManager {
       return PreferencesManager.INSTANCE;
     },
+  },
+  mounted() {
+    this.attachSidebarResize();
   },
 });
 
@@ -307,5 +377,15 @@ export default Vue.extend({
   z-index: 10;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   border: 1px solid #cc0000;
+}
+
+.sidebar-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 200;
 }
 </style>

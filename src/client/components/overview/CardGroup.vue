@@ -10,7 +10,7 @@
       </select>
     </div>
     <div v-if="!headerOnly" :class="{ 'full-width': fullWidth }">
-      <div v-if="localMode === 'grid'" :class="['group-cards', small ? 'grid-small' : (fullWidth ? 'grid-one' : 'grid-two')]">
+  <div v-if="localMode === 'grid'" :class="['group-cards', small ? 'grid-small' : (fullWidth ? 'grid-one' : 'grid-two')]">
         <div v-for="(card, idx) in typedCards" :key="card && card.name ? card.name : idx" class="cardbox">
           <Card :card="card" :actionUsed="isCardActivated(card, player)" :cubeColor="player.color"/>
         </div>
@@ -74,11 +74,11 @@ export default Vue.extend({
 .group-count { color: #ccc; }
 .group-mode-select { margin-left:auto; }
 .group-cards.grid-two { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; align-items:flex-start; }
+.group-cards.grid-one { display:grid; grid-template-columns: 1fr; gap:8px; }
 .group-cards.grid-small { display:flex; flex-direction:column; gap:6px; }
 .cardbox { margin:4px; flex: 0 0 180px; }
 
-.group-cards.grid-one { display:grid; grid-template-columns: 1fr; gap:8px; }
-
+ 
 .full-width { width: 100%; }
 
 /* Header color theming */
