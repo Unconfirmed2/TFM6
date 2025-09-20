@@ -1,14 +1,12 @@
 <template>
-  <div class="log-container">
-      <div class="panel log-panel">
-      <div id="logpanel-scrollable" class="panel-body">
-        <ul v-if="messages">
-          <log-message-component v-for="(message, index) in messages" :key="index" :message="message" :players="players" v-on:click="messageClicked(message)"></log-message-component>
-        </ul>
-      </div>
-      <div class='debugid'>(debugid {{step}})</div>
+  <div class="panel log-panel">
+    <div id="logpanel-scrollable" class="panel-body">
+      <ul v-if="messages">
+        <log-message-component v-for="(message, index) in messages" :key="index" :message="message" :players="players" v-on:click="messageClicked(message)"></log-message-component>
+      </ul>
     </div>
-    <card-panel :message="selectedMessage" :players="players" v-on:hide="selectedMessage = undefined"></card-panel>
+    <div class='debugid'>(debugid {{step}})</div>
+    <card-panel v-if="!externalCardPanel" :message="selectedMessage" :players="players" v-on:hide="hideSelectedMessage"></card-panel>
   </div>
 </template>
 
@@ -18,6 +16,7 @@ import Vue from 'vue';
 import {paths} from '@/common/app/paths';
 import {statusCode} from '@/common/http/statusCode';
 import {LogMessage} from '@/common/logs/LogMessage';
+import {LogMessageDataType} from '@/common/logs/LogMessageDataType';
 import {PublicPlayerModel} from '@/common/models/PlayerModel';
 import {playerColorClass} from '@/common/utils/utils';
 import {Color} from '@/common/Color';
@@ -58,6 +57,11 @@ export default Vue.extend({
       required: false,
       default: 0,
     },
+    externalCardPanel: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   data(): LogPanelModel {
     return {
@@ -73,6 +77,25 @@ export default Vue.extend({
   methods: {
     messageClicked(message: LogMessage) {
       this.selectedMessage = message;
+      // inform parent whether the selected message contains cards/global events/colonies
+      this.$emit('card-panel-visible', this.messageHasRenderableData(message));
+      // emit full selected message so parent can render CardPanel externally
+      this.$emit('selected-message', message);
+    },
+    hideSelectedMessage() {
+      this.selectedMessage = undefined;
+      this.$emit('card-panel-visible', false);
+      this.$emit('selected-message', undefined);
+    },
+    messageHasRenderableData(message: LogMessage | undefined): boolean {
+      if (message === undefined || message.data === undefined) {
+        return false;
+      }
+      return message.data.some((d) => d !== undefined && (
+        d.type === LogMessageDataType.CARD ||
+        d.type === LogMessageDataType.GLOBAL_EVENT ||
+        d.type === LogMessageDataType.COLONY
+      ));
     },
     selectGeneration(gen: number): void {
       if (gen !== this.selectedGeneration) {
@@ -80,7 +103,7 @@ export default Vue.extend({
       }
       this.selectedGeneration = gen;
     },
-    getLogsForGeneration(generation: number): void {
+  getLogsForGeneration(generation: number): void {
       const messages = this.messages;
       // abort any pending requests
       if (logRequest !== undefined) {
@@ -105,6 +128,10 @@ export default Vue.extend({
           if (generation === this.generation) {
             this.$nextTick(this.scrollToEnd);
           }
+          // clear any selected message when changing generation
+          this.selectedMessage = undefined;
+          this.$emit('card-panel-visible', false);
+          this.$emit('selected-message', undefined);
         } else {
           console.error(`error updating messages, response code ${xhr.status}`);
         }

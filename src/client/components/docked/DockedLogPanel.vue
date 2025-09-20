@@ -1,6 +1,6 @@
 
 <template>
-  <div class="docked-log-panel">
+  <div :class="['docked-log-panel', { 'card-open': cardPanelVisible }]">
     <div class="docked-log-controls">
     </div>
 
@@ -12,17 +12,23 @@
       :lastSoloGeneration="lastSoloGeneration"
       :color="color"
       :step="step"
+      :externalCardPanel="true"
+      @card-panel-visible="cardPanelVisible = $event"
+      @selected-message="selectedMessage = $event"
     />
+    <!-- Render CardPanel externally so it sits in the dock wrapper -->
+    <card-panel v-if="selectedMessage" :message="selectedMessage" :players="players" v-on:hide="onHideCardPanel"></card-panel>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import LogPanel from '@/client/components/logpanel/LogPanel.vue';
+import CardPanel from '@/client/components/logpanel/CardPanel.vue';
 
 export default Vue.extend({
   name: 'docked-log-panel',
-  components: { 'log-panel': LogPanel },
+  components: { 'log-panel': LogPanel, 'card-panel': CardPanel },
   props: {
     id: { type: String, required: false },
     players: { type: Array, required: true },
@@ -34,7 +40,15 @@ export default Vue.extend({
   data() {
     return {
       selectedGeneration: this.generation || 1,
+      cardPanelVisible: false,
+      selectedMessage: undefined,
     };
+  },
+  methods: {
+    onHideCardPanel() {
+      this.selectedMessage = undefined;
+      this.cardPanelVisible = false;
+    },
   },
   computed: {
     generationRange(): number[] {

@@ -919,25 +919,87 @@ export default Vue.extend({
   border-radius: 0 !important;
 }
 
-.docked-sidepanel .log-container {
-  /* Make log panel take the remaining dock height (50%) and scroll */
+
+/* Default: log uses half the dock, card-panel hidden */
+/* NOTE: log container moved; target the panel.log-panel root instead */
+.docked-sidepanel .panel.log-panel {
+  /* Always take 50% of the viewport height in the dock */
   height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
   max-height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
   flex: 0 0 auto;
-  overflow: auto !important;
   padding: 0 !important;
   margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* Force inner panels to be transparent so dock background shows through */
 .docked-sidepanel .panel,
 .docked-sidepanel .panel-body,
-.docked-sidepanel .card-panel,
 .docked-sidepanel .log-panel,
 .docked-sidepanel .chat-container {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+}
+
+/* Allow dock panels to show input elements that slightly overflow (send button) */
+.docked-sidepanel .panel { overflow: visible !important; }
+
+/* Ensure the chat container reserves a little bottom space so the input isn't clipped */
+.docked-sidepanel .chat-container { padding-bottom: 8px !important; box-sizing: border-box !important; }
+
+/* Center the input vertically and keep send button above other elements */
+.docked-sidepanel .chat-input-container { align-items: center !important; }
+.docked-sidepanel .chat-send-btn { position: relative !important; z-index: 5 !important; }
+
+.docked-sidepanel .card-panel { display: none !important; }
+
+/* Extra safety: collapse the card-panel so it doesn't reserve space when hidden */
+.docked-sidepanel .docked-log-panel .card-panel {
+  display: none !important;
+  height: 0 !important;
+  max-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Hide card panel by default in dock; only show when parent .card-open is set */
+.docked-sidepanel .docked-log-panel.card-open .card-panel { 
+  display: block !important;
+  visibility: visible !important;
+  /* Give the card panel a fixed portion of the dock (20% viewport) */
+  height: calc(var(--vh, 1vh) * 100 * 0.20) !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.20) !important;
+  overflow: auto !important;
+  padding: 8px !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+/* When card panel is present the log container remains 50% viewport height, but the
+   inner scrollable panel will shrink because card-panel occupies space inside the container */
+.docked-sidepanel .docked-log-panel.card-open .log-container {
+  height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
+}
+.docked-sidepanel .docked-log-panel.card-open .panel.log-panel {
+  height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
+}
+
+/* Make the inner panel-body fill remaining vertical space inside log-container */
+.docked-sidepanel .log-container .panel-body {
+  flex: 1 1 auto !important;
+  overflow: auto !important;
+}
+.docked-sidepanel .panel.log-panel .panel-body {
+  flex: 1 1 auto !important;
+  overflow: auto !important;
 }
 
 /* Hide titles/headers inside the dock to reduce visual clutter */
