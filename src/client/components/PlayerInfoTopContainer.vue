@@ -140,7 +140,7 @@ export default Vue.extend({
   height: 160px;
   box-sizing: border-box;
   overflow: hidden;
-  padding:5px;
+  padding-left:5px;
 }
 /* Make each player-info card a vertical column so tags sit below status */
 .player-info-item .player-info,

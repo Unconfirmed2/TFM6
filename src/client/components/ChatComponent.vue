@@ -33,6 +33,7 @@
         <input 
           type="text" 
           v-model="newMessage" 
+          @input="persistStateDebounced"
           @keyup.enter="sendMessage"
           @keyup.escape="clearMessage"
           placeholder="Type a message..." 
@@ -65,6 +66,7 @@ type DataModel = {
   newMessage: string;
   isLoading: boolean;
   lastMessageId: string;
+  _persistTimer?: any;
 };
 
 const MAX_MESSAGES = 200;
@@ -92,6 +94,8 @@ export default Vue.extend({
       newMessage: '',
       isLoading: false,
       lastMessageId: '',
+      // timer for debounced persistence
+      _persistTimer: undefined as any,
     };
   },
   mounted() {
@@ -99,6 +103,16 @@ export default Vue.extend({
     this.loadPersistedState();
     this.attachResizeHandle();
     this.startPolling();
+    // Ensure we start scrolled to bottom on mount (after DOM rendered)
+    this.$nextTick(() => {
+      setTimeout(() => this.scrollToBottom(), 50);
+    });
+    // Listen for storage events to sync typed message across multiple mounted chat instances
+    try {
+      window.addEventListener('storage', (this as any)._onStorageEventBound = this.onStorageEvent.bind(this));
+    } catch (e) {
+      // ignore
+    }
   },
   computed: {
     thisPlayer() {
@@ -184,9 +198,20 @@ export default Vue.extend({
       this.newMessage = '';
     },
     scrollToBottom() {
-      const messagesEl = this.$refs.chatMessages as HTMLElement;
-      if (messagesEl) {
+      try {
+        const messagesEl = this.$refs.chatMessages as HTMLElement;
+        if (!messagesEl) return;
+        // If there are message nodes, scroll the last one into view for smooth reliability
+        const last = messagesEl.querySelector('.chat-message:last-child') as HTMLElement | null;
+        if (last && typeof last.scrollIntoView === 'function') {
+          // align to bottom without changing layout snapping
+          last.scrollIntoView({ block: 'end', inline: 'nearest' });
+          return;
+        }
+        // Fallback: set scrollTop to max
         messagesEl.scrollTop = messagesEl.scrollHeight;
+      } catch (e) {
+        // ignore
       }
     },
     // Public wrapper so parent components can call scrollToBottom
@@ -230,6 +255,21 @@ export default Vue.extend({
         // ignore
       }
     },
+    persistStateDebounced() {
+      try {
+        if ((this as any)._persistTimer) {
+          clearTimeout((this as any)._persistTimer);
+        }
+        (this as any)._persistTimer = setTimeout(() => {
+          try {
+            this.persistState();
+          } catch (e) {}
+          (this as any)._persistTimer = undefined;
+        }, 200);
+      } catch (e) {
+        // ignore
+      }
+    },
     loadPersistedState() {
       try {
         const key = this.storageKey();
@@ -244,6 +284,26 @@ export default Vue.extend({
         }
       } catch (e) {
         // ignore parse errors
+      }
+    },
+
+    // Storage event handler to sync typed text across multiple mounted chat instances
+    onStorageEvent(ev: StorageEvent) {
+      try {
+        const key = this.storageKey();
+        if (ev.key && ev.key !== key) return;
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        const persisted = JSON.parse(raw) as Partial<DataModel>;
+        const externalNewMessage = (persisted && typeof persisted.newMessage === 'string') ? persisted.newMessage : '';
+        // Do not overwrite if this instance's input is focused (user is typing here)
+        const inputEl = (this.$el as HTMLElement).querySelector('.chat-input') as HTMLInputElement | null;
+        if (inputEl && document.activeElement === inputEl) return;
+        if (this.newMessage !== externalNewMessage) {
+          this.newMessage = externalNewMessage;
+        }
+      } catch (e) {
+        // ignore
       }
     },
 
@@ -354,6 +414,13 @@ export default Vue.extend({
       }
     },
   },
+  watch: {
+    messages() {
+      this.$nextTick(() => {
+        setTimeout(() => this.scrollToBottom(), 20);
+      });
+    }
+  },
   created() {
     // Hydrate persisted state now that props are available
     this.loadPersistedState();
@@ -361,13 +428,33 @@ export default Vue.extend({
   activated() {
     // Called when keep-alive activates the component instance.
     this.startPolling();
+    // Ensure scroll to bottom when component is re-activated (keep-alive)
+    this.$nextTick(() => {
+      setTimeout(() => this.scrollToBottom(), 50);
+    });
+    try {
+      if (!(this as any)._onStorageEventBound) (this as any)._onStorageEventBound = this.onStorageEvent.bind(this);
+      window.addEventListener('storage', (this as any)._onStorageEventBound);
+    } catch (e) {}
   },
   deactivated() {
     // Called when keep-alive deactivates the component instance.
     this.stopPolling();
+    try {
+      if ((this as any)._onStorageEventBound) {
+        window.removeEventListener('storage', (this as any)._onStorageEventBound);
+        (this as any)._onStorageEventBound = undefined;
+      }
+    } catch (e) {}
   },
   beforeDestroy() {
     this.stopPolling();
+    try {
+      if ((this as any)._onStorageEventBound) {
+        window.removeEventListener('storage', (this as any)._onStorageEventBound);
+        (this as any)._onStorageEventBound = undefined;
+      }
+    } catch (e) {}
   },
 });
 </script>

@@ -69,9 +69,12 @@
                 <Awards v-if="playerView.players.length > 1" :awards="game.awards" />
                 <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
                 <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
-                <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
               </div>
             </div>
+          </div>
+          <!-- Pathfinders / Planetary tracks are shown outside the scaled board container so they don't get scaled with the board -->
+          <div class="player_home_block player_home_block--pathfinders" v-if="game.gameOptions.expansions.pathfinders">
+            <PlanetaryTracks :tracks="game.pathfinders" :gameOptions="game.gameOptions" />
           </div>
         </div>
 
@@ -161,10 +164,10 @@
                  the PlayerHome re-renders or the chat section is toggled. Use a stable key
                  based on game id + player id so each player/game has its own cached instance. -->
             <keep-alive>
-              <chat-component 
-                ref="inplaceChat"
+              <chat-component
                 v-show="chatVisible"
-                :key="`${game.id || 'game'}-${playerView.id}`"
+                ref="inplaceChat"
+                :key="((game && game.id) || 'game') + '-' + playerView.id"
                 :playerView="playerView"
                 :players="playerView.players"
                 @new-message="onNewMessage">
@@ -176,22 +179,45 @@
       </player-home-section-container>
         </div>
 
+        <!-- Persistent chat section that's always rendered but hidden when not active -->
+        <div v-if="!useRightDock && sectionOrder.includes(6)" v-show="currentVisibleSection === 6" class="player_home_block">
+          <keep-alive>
+            <chat-component
+              v-show="chatVisible"
+              ref="inplaceChat"
+              :key="'chat-' + playerView.id"
+              :playerView="playerView"
+              :players="playerView.players"
+              @new-message="onNewMessage">
+            </chat-component>
+          </keep-alive>
+        </div>
+
       </div>
 
     </div>
 
   <!-- Fixed dock on top right -->
-  <div v-if="useRightDock && chatVisible" class="docked-sidepanel">
-    <chat-panel ref="dockedChatPanel" :playerView="playerView" :players="playerView.players" @new-message="onNewMessage" />
-      <docked-log-panel
-        :id="playerView.id"
+  <div v-if="useRightDock" class="docked-sidepanel">
+    <docked-log-panel
+      :id="playerView.id"
+      :players="playerView.players"
+      :generation="game.generation"
+      :lastSoloGeneration="game.lastSoloGeneration"
+      :color="thisPlayer.color"
+      :step="game.step"
+    />
+    <keep-alive>
+      <chat-panel
+        ref="dockedChatPanel"
+        :key="((game && game.id) || 'game') + '-' + playerView.id + '-docked'"
+        :playerView="playerView"
         :players="playerView.players"
-        :generation="game.generation"
-        :lastSoloGeneration="game.lastSoloGeneration"
-        :color="thisPlayer.color"
-        :step="game.step"
+        v-show="chatVisible"
+        @new-message="onNewMessage"
       />
-    </div>
+    </keep-alive>
+  </div>
 
     <!-- Underground tokens (always at bottom) -->
     <div v-if="thisPlayer.underworldData.tokens.length > 0">
@@ -297,6 +323,20 @@
     <purge-warning :expectedPurgeTimeMs="playerView.game.expectedPurgeTimeMs"></purge-warning>
   </div>
 
+  <!-- Persistent chat component to maintain state -->
+  <div v-if="!useRightDock" :style="chatContainerStyle">
+    <keep-alive>
+      <chat-component
+        v-show="chatVisible && isChatSectionActive"
+        ref="inplaceChat"
+        :key="'persistent-chat-' + playerView.id"
+        :playerView="playerView"
+        :players="playerView.players"
+        @new-message="onNewMessage">
+      </chat-component>
+    </keep-alive>
+  </div>
+
 </template>
 
 <script lang="ts">
@@ -347,6 +387,8 @@ export interface PlayerHomeModel {
   chatVisible: boolean;
   unreadMessageCount: number;
   useRightDock: boolean;
+  chatMounted: boolean;
+  chatMountedDocked: boolean;
 }
 
 class TerraformedAlertDialog {
@@ -370,6 +412,8 @@ export default Vue.extend({
       chatVisible: preferences.chat_visible,
       unreadMessageCount: 0,
       useRightDock: (preferences as any).right_chat_log === true,
+  chatMounted: true,
+  chatMountedDocked: true,
     };
   },
   watch: {
@@ -389,21 +433,32 @@ export default Vue.extend({
       PreferencesManager.INSTANCE.set('chat_visible', this.chatVisible);
       if (this.chatVisible) {
         this.unreadMessageCount = 0;
-        // Scroll the chat to bottom when opened
+
+        // Ensure chat components are mounted
+        if (!this.chatMounted) {
+          this.chatMounted = true;
+        }
+        if (!this.chatMountedDocked) {
+          this.chatMountedDocked = true;
+        }
+
+        // Scroll the chat to bottom when opened with a small delay to ensure rendering
         this.$nextTick(() => {
-          try {
-            const inPlace: any = (this as any).$refs.inplaceChat;
-            if (inPlace && typeof inPlace.scrollToBottomPublic === 'function' && this.useRightDock === false) {
-              inPlace.scrollToBottomPublic();
-              return;
+          setTimeout(() => {
+            try {
+              const inPlace: any = (this as any).$refs.inplaceChat;
+              if (inPlace && typeof inPlace.scrollToBottomPublic === 'function' && this.useRightDock === false) {
+                inPlace.scrollToBottomPublic();
+                return;
+              }
+              const docked: any = (this as any).$refs.dockedChatPanel;
+              if (docked && typeof docked.scrollToBottom === 'function') {
+                docked.scrollToBottom();
+              }
+            } catch (e) {
+              // ignore
             }
-            const docked: any = (this as any).$refs.dockedChatPanel;
-            if (docked && typeof docked.scrollToBottom === 'function') {
-              docked.scrollToBottom();
-            }
-          } catch (e) {
-            // ignore
-          }
+          }, 100);
         });
       }
     },
@@ -429,6 +484,19 @@ export default Vue.extend({
     cardsInHandCount(): number {
       const playerView = this.playerView;
       return playerView.cardsInHand.length + playerView.preludeCardsInHand.length + playerView.ceoCardsInHand.length;
+    },
+    currentVisibleSection(): number {
+      // Returns which section should be currently visible
+      // This mimics the v-if/v-else-if logic but as a computed property
+      for (const sectionId of this.sectionOrder) {
+        if (sectionId === 1 && this.thisPlayer.tableau.length > 0) return 1;
+        if (sectionId === 2) return 2;
+        if (sectionId === 3) return 3;
+        if (sectionId === 4 && this.game.colonies.length > 0) return 4;
+        if (sectionId === 5 && !this.useRightDock) return 5;
+        if (sectionId === 6 && !this.useRightDock) return 6;
+      }
+      return 0;
     },
     boardWrapperStyle(): any {
       // Provide an initial style object; width/height are updated dynamically.
@@ -785,21 +853,21 @@ export default Vue.extend({
 .player-main-flex { flex: 1 1 auto; min-width: 0; }
 
 /* Fixed dock on top right - full viewport height */
-.docked-sidepanel { 
-  position: fixed; 
-  top: 0; 
-  right: 0; 
-  width: 20%; 
-  height: 100vh; 
-  box-sizing: border-box; 
-  padding: 0; 
-  overflow: hidden; 
-  z-index: 1200; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 0; 
-  background-color: #000; 
-  color: #ddd; 
+.docked-sidepanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 20%;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 0;
+  overflow: hidden;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background-color: #000;
+  color: #ddd;
 }
 
 /* Ensure duplicated chat/log appear inside the dock instead of fixed to viewport */
@@ -811,10 +879,10 @@ export default Vue.extend({
   right: auto !important;
   width: 100% !important;
   box-shadow: none !important;
-  /* use available dock height: 75% of dock */
+  /* use available dock height: 50% of dock */
   /* use --vh set by JS for accurate viewport height (handles zoom/mobile UI) */
-  height: calc(var(--vh, 1vh) * 100 * 0.75) !important;
-  max-height: calc(var(--vh, 1vh) * 100 * 0.75) !important;
+  height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
@@ -852,9 +920,9 @@ export default Vue.extend({
 }
 
 .docked-sidepanel .log-container {
-  /* Make log panel take the remaining dock height (25%) and scroll */
-  height: calc(var(--vh, 1vh) * 100 * 0.25) !important;
-  max-height: calc(var(--vh, 1vh) * 100 * 0.25) !important;
+  /* Make log panel take the remaining dock height (50%) and scroll */
+  height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
+  max-height: calc(var(--vh, 1vh) * 100 * 0.50) !important;
   flex: 0 0 auto;
   overflow: auto !important;
   padding: 0 !important;

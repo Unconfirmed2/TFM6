@@ -20,7 +20,15 @@ export default Vue.extend({
     scrollToBottom() {
       try {
         const c: any = (this as any).$refs.innerChat;
-        if (c && typeof c.scrollToBottom === 'function') c.scrollToBottom();
+        if (!c) return;
+        // Prefer the public wrapper if available
+        if (typeof c.scrollToBottomPublic === 'function') {
+          c.scrollToBottomPublic();
+          return;
+        }
+        if (typeof c.scrollToBottom === 'function') {
+          c.scrollToBottom();
+        }
       } catch (e) {
         // ignore
       }
