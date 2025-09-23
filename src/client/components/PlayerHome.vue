@@ -1,5 +1,5 @@
 <template>
-  <div id="player-home" :class="[(game.turmoil ? 'with-turmoil': ''), (useRightDock && chatVisible ? 'with-dock' : '')]">
+  <div id="player-home" :class="[(game.turmoil ? 'with-turmoil': ''), (useRightDock && dockVisible ? 'with-dock' : '')]">
   <player-info-top-container :playerView="playerView" />
 
     <div v-if="game.phase === 'end'">
@@ -26,8 +26,8 @@
       :sectionOrder="sectionOrder"
       :chatVisible="chatVisible"
       :unreadMessageCount="unreadMessageCount"
-      @section-order-changed="onSectionOrderChanged"
-      @toggle-chat="chatVisible = !chatVisible">
+  @section-order-changed="onSectionOrderChanged"
+  @toggle-chat="onSidebarToggleChat">
         <div class="deck-size">{{ game.deckSize }}</div>
     </sidebar>
 
@@ -198,7 +198,7 @@
     </div>
 
   <!-- Fixed dock on top right -->
-  <div v-if="useRightDock" class="docked-sidepanel">
+  <div v-show="useRightDock && dockVisible" class="docked-sidepanel">
     <docked-log-panel
       :id="playerView.id"
       :players="playerView.players"
@@ -389,6 +389,7 @@ export interface PlayerHomeModel {
   useRightDock: boolean;
   chatMounted: boolean;
   chatMountedDocked: boolean;
+  dockVisible: boolean;
 }
 
 class TerraformedAlertDialog {
@@ -414,6 +415,7 @@ export default Vue.extend({
       useRightDock: (preferences as any).right_chat_log === true,
   chatMounted: true,
   chatMountedDocked: true,
+  dockVisible: true,
     };
   },
   watch: {
@@ -713,6 +715,31 @@ export default Vue.extend({
 
       this.sectionOrder = currentOrder;
       SectionOrderStorage.updateSectionOrder(this.playerView.id, currentOrder);
+    },
+    onSidebarToggleChat(): void {
+      // If using the right dock, toggle the whole dock visibility. Otherwise toggle inline chat.
+      try {
+        if (this.useRightDock) {
+          this.dockVisible = !this.dockVisible;
+          // When opening the dock, make sure chat component is visible and mounted so it can be used
+          if (this.dockVisible) {
+            this.chatMountedDocked = true;
+            this.chatVisible = true;
+            // scroll to bottom after render
+            this.$nextTick(() => {
+              try {
+                const docked: any = (this as any).$refs.dockedChatPanel;
+                if (docked && typeof docked.scrollToBottom === 'function') docked.scrollToBottom();
+              } catch (e) {}
+            });
+          }
+          return;
+        }
+        // Fallback: toggle inline chat
+        this.chatVisible = !this.chatVisible;
+      } catch (e) {
+        // ignore
+      }
     },
     onNewMessage(): void {
       // When chat is not visible, increment unread counter
